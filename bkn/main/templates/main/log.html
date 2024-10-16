@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <title>Логи</title>
+</head>
+
+<body>
+
+<a href="#" id="SgoBackBtn" class="btn btn-secondary ml-2 mt-2" style="margin-left: 10px;">&lt; Назад</a>
+
+<div class="container mt-3">
+
+    <h4 style="text-align: center; padding-bottom: 10px; ">ЛОГИ - {{ club }}</h4>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Введите слово для поиска" id="searchInput">
+        <button class="btn btn-secondary" type="button" onclick="searchLogs()">Поиск</button>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Когда</th>
+            <th scope="col">Кто</th>
+            <th scope="col">Операция</th>
+            <th scope="col">До</th>
+            <th scope="col">После</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for log_entry in log_list %}
+        <tr>
+            <td>{{ log_entry.when }}</td>
+            <td>{{ log_entry.who }}</td>
+            <td>{{ log_entry.operation }}</td>
+            <td>{{ log_entry.before }}</td>
+            <td>{{ log_entry.after }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Пока что нет логов...</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    document.getElementById('SgoBackBtn').addEventListener('click', function () {
+        history.back();
+    });
+
+    $(document).ready(function () {
+        function highlightCells() {
+            $('td').each(function () {
+                var operation = $(this).text().trim();
+                if (operation === 'ОТМЕНА') {
+                    $(this).css('background-color', 'red');
+                } else if (operation === 'УШЛИ') {
+                    $(this).css('background-color', 'orange');
+                } else if (operation === 'ИЗМЕНЕНИЕ') {
+                    $(this).css('background-color', 'lightblue');
+                } else if (operation === 'ДОБАВЛЕНИЕ') {
+                    $(this).css('background-color', 'SpringGreen');
+                } else if (operation === 'РАЗБИЕНИЕ') {
+                    $(this).css('background-color', 'pink');
+                }
+            });
+        }
+
+        highlightCells();
+
+        window.searchLogs = function () {
+            var searchTerm = $('#searchInput').val().toLowerCase();
+            $('tbody tr').each(function () {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        };
+    });
+</script>
+
+
+</body>
+</html>

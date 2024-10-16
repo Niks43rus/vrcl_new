@@ -1,0 +1,273 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дневной календарь бронирования</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin-left: 10px;
+        }
+
+        #calendar {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .date-picker {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .calendar-container {
+            display: none; /* Скрываем календари по умолчанию */
+            margin-top: 20px;
+        }
+
+        .device-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #datepicker-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .fc-title {
+            font-size: 18px; /* Увеличение размера шрифта для текста событий */
+            color: black; /* Можно добавить цвет, если требуется */
+        }
+
+        .fc-time {
+            font-size: 18px; /* Увеличение размера шрифта для текста событий */
+            color: black; /* Можно добавить цвет, если требуется */
+        }
+
+        .device-buttons {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .device-buttons button {
+            margin-right: 10px;
+        }
+
+        .active {
+            background-color: green; /* Подсветка выбранной кнопки */
+            color: white; /* Цвет текста выбранной кнопки */
+        }
+
+        .inactive {
+            background-color: lightgray; /* Цвет для неактивных кнопок */
+            color: black; /* Цвет текста для неактивных кнопок */
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="text-center mt-4">Дневной календарь - {{ club_name }}</h1>
+<hr>
+
+<!-- Календарь выбора даты -->
+<div id="datepicker-container">
+    <h4 style="text-align: center;">Выберите нужную дату:</h4>
+    <input type="text" id="datepicker" class="form-control" style="text-align: center;"/>
+</div>
+
+<!-- Кнопки выбора устройств -->
+<div class="device-buttons">
+    <button class="device-button active" data-device="Плойка">Плойки</button>
+    <button class="device-button inactive" data-device="Квест">Квесты</button>
+    <button class="device-button inactive" data-device="Настолки">Настолки</button>
+    {% for device in devices %}
+        {% if not "ПЛОЙКА" in device.name and not "КВЕСТ" in device.name and not "НАСТОЛКИ" in device.name %}
+            <button class="device-button inactive" data-device="{{ device.name }}">{{ device.name }}</button>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Отображение календарей -->
+<div class="calendar-container" id="calendar-1-container">
+    <div id="calendar-1-inner"></div>
+</div>
+
+<div class="calendar-container" id="calendar-2-container">
+    <div id="calendar-2-inner"></div>
+</div>
+
+<div class="calendar-container" id="calendar-3-container">
+    <div id="calendar-3-inner"></div>
+</div>
+
+<!-- Отображение календарей для остальных устройств, кроме Плоек, Квестов и Настолок -->
+{% for device in devices %}
+    {% if not "ПЛОЙКА" in device.name and not "КВЕСТ" in device.name and not "НАСТОЛКИ" in device.name %}
+        <div class="calendar-container" id="calendar-{{ forloop.counter }}-container">
+            <div id="calendar-{{ forloop.counter }}-inner"></div>
+        </div>
+    {% endif %}
+{% endfor %}
+
+<script>
+    $(document).ready(function () {
+        var activeDevice = 'Плойка'; // Начально выбранное устройство
+
+        // Инициализация календаря для всех Плоек
+        $('#calendar-1-inner').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'agendaDay'
+            },
+            defaultView: 'agendaDay',
+            defaultDate: moment().format('YYYY-MM-DD'),
+            events: {{ events|get_item:'Плойка'|safe }},  // Загружаем события для всех Плоек
+            editable: false,
+            eventLimit: true,
+            views: {
+                agenda: {
+                    slotDuration: '00:60:00',
+                    slotLabelFormat: 'HH:mm'
+                }
+            },
+            eventRender: function (event, element) {
+                element.find('.fc-title').text(event.title);  // Выводим название устройства
+                element.find('.fc-title').css('font-size', '18px');
+                element.find('.fc-time').css('font-size', '18px');
+            }
+        });
+
+        // Инициализация календаря для всех Квестов
+        $('#calendar-2-inner').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'agendaDay'
+            },
+            defaultView: 'agendaDay',
+            defaultDate: moment().format('YYYY-MM-DD'),
+            events: {{ events|get_item:'Квест'|safe }},  // Загружаем события для всех Квестов
+            editable: false,
+            eventLimit: true,
+            views: {
+                agenda: {
+                    slotDuration: '00:60:00',
+                    slotLabelFormat: 'HH:mm'
+                }
+            },
+            eventRender: function (event, element) {
+                element.find('.fc-title').text(event.title);  // Выводим название устройства
+                element.find('.fc-title').css('font-size', '18px');
+                element.find('.fc-time').css('font-size', '18px');
+            }
+        });
+
+        // Инициализация календаря для всех Настолок
+        $('#calendar-3-inner').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'agendaDay'
+            },
+            defaultView: 'agendaDay',
+            defaultDate: moment().format('YYYY-MM-DD'),
+            events: {{ events|get_item:'Настолки'|safe }},  // Загружаем события для всех Настолок
+            editable: false,
+            eventLimit: true,
+            views: {
+                agenda: {
+                    slotDuration: '00:60:00',
+                    slotLabelFormat: 'HH:mm'
+                }
+            },
+            eventRender: function (event, element) {
+                element.find('.fc-title').text(event.title);  // Выводим название устройства
+                element.find('.fc-title').css('font-size', '18px');
+                element.find('.fc-time').css('font-size', '18px');
+            }
+        });
+
+        // Инициализация календарей для остальных устройств
+        {% for device in devices %}
+            {% if not "ПЛОЙКА" in device.name and not "КВЕСТ" in device.name and not "НАСТОЛКИ" in device.name %}
+                $('#calendar-{{ forloop.counter }}-inner').fullCalendar({
+                    header: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'agendaDay'
+                    },
+                    defaultView: 'agendaDay',
+                    defaultDate: moment().format('YYYY-MM-DD'),
+                    events: {{ events|get_item:device.name|safe }},  // Загружаем события для конкретного устройства
+                    editable: false,
+                    eventLimit: true,
+                    views: {
+                        agenda: {
+                            slotDuration: '00:60:00',
+                            slotLabelFormat: 'HH:mm'
+                        }
+                    },
+                    eventRender: function (event, element) {
+                        element.find('.fc-title').text(event.title);  // Выводим название устройства
+                        element.find('.fc-title').css('font-size', '18px');
+                        element.find('.fc-time').css('font-size', '18px');
+                    }
+                });
+            {% endif %}
+        {% endfor %}
+
+        // Инициализация выбора даты
+        $('#datepicker').datepicker({
+            dateFormat: "yy-mm-dd",
+            onSelect: function (dateText) {
+                // Изменяем дату в каждом календаре
+                $('#calendar-1-inner').fullCalendar('gotoDate', dateText);
+                $('#calendar-2-inner').fullCalendar('gotoDate', dateText);
+                $('#calendar-3-inner').fullCalendar('gotoDate', dateText);
+                {% for device in devices %}
+                    {% if not "ПЛОЙКА" in device.name and not "КВЕСТ" in device.name and not "НАСТОЛКИ" in device.name %}
+                        $('#calendar-{{ forloop.counter }}-inner').fullCalendar('gotoDate', dateText);
+                    {% endif %}
+                {% endfor %}
+            }
+        });
+
+        // Управление кнопками устройств
+        $('.device-button').click(function () {
+            var deviceName = $(this).data('device');
+
+            // Сброс подсветки кнопок
+            $('.device-button').removeClass('active').addClass('inactive');
+
+            // Подсвечиваем выбранную кнопку
+            $(this).removeClass('inactive').addClass('active');
+
+            // Показать/скрыть соответствующие календари
+            $('.calendar-container').hide(); // Скрыть все календари
+            $('#calendar-' + (deviceName === 'Плойка' ? '1' : deviceName === 'Квест' ? '2' : deviceName === 'Настолки' ? '3' : '') + '-container').show(); // Показать выбранный календарь
+        });
+
+        // Отображаем календарь Плоек по умолчанию
+        $('#calendar-1-container').show();
+    });
+</script>
+
+</body>
+</html>

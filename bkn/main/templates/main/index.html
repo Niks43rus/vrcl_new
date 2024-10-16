@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Вход</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body class="container">
+
+<div class="text-center mt-5">
+    <h1>welcome to the club buddy</h1>
+</div>
+
+<div class="text-center mt-3">
+    <input type="password" class="form-control" id="inputPassword" placeholder="Введите пароль"
+           oninput="checkPassword()">
+    <div id="error-message" class="text-danger"></div>
+</div>
+
+<ul class="list-group mt-4">
+    {% for club in clubs %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ club.name }}
+        <button onclick="login('{{ club.name }}')" class="btn btn-secondary mb-2">Войти</button>
+    </li>
+    {% endfor %}
+</ul>
+
+
+<h1 id="ep" style="display: none;" data-expected-password="{{ expected_password }}"> {{ expected_password }}</h1>
+
+
+<script>
+    function checkPassword() {
+        // Ваша логика проверки пароля
+        var password = document.getElementById("inputPassword").value;
+        // Можно добавить дополнительные проверки по необходимости
+    }
+
+    function login(clubName) {
+        var password = document.getElementById("inputPassword").value;
+        var expectedPassword = document.getElementById("ep").dataset.expectedPassword;
+
+
+
+
+        // Пример проверки пароля на стороне клиента
+        if (password === expectedPassword) {
+            // Сохраняем информацию о входе в локальное хранилище на сутки
+
+
+            // Устанавливаем срок действия куки на 1 сутки
+            var expirationDate = new Date();
+            expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+            var expires = "expires=" + expirationDate.toUTCString();
+
+
+            // Сохраняем информацию о входе в куки
+            document.cookie = "authenticated=" + expectedPassword + "; " + expires + "; path=/";
+            document.cookie = "clubName=" + encodeURIComponent(clubName) + "; " + expires + "; path=/";
+
+
+            // Перенаправляем на страницу клуба
+            window.location.href = "{% url 'club_page' %}";
+        } else {
+            // Выводим сообщение об ошибке
+            document.getElementById("error-message").innerText = "Неверный пароль";
+        }
+    }
+</script>
+
+</body>
+</html>

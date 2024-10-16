@@ -1,0 +1,74 @@
+<!-- stat.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/dataTables.bootstrap4.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.23/js/dataTables.bootstrap4.min.js"></script>
+</head>
+<body>
+
+
+
+    <!-- Таблица для Admins -->
+    <div style="text-align: left; margin-top: 10px; margin-left: 10px;">
+        <a href="javascript:history.back()" class="btn btn-secondary">Назад</a>
+    </div>
+    <h2 style="text-align: center;">Статистика - Админы</h2>
+    <table id="adminsTable" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in admins_data %}
+                <tr>
+                    <td>{{ admin.name }}</td>
+                    <td>{{ admin.counter }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <!-- Таблица для WhereInfo -->
+    <h2 style="text-align: center;">Статистика - Откуда пришли</h2>
+    <table id="whereInfoTable" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>Откуда</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for where_info in where_info_data %}
+                <tr>
+                    <td>{{ where_info.where }}</td>
+                    <td>{{ where_info.counter }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+
+
+</body>
+</html>

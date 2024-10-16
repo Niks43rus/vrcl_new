@@ -1,0 +1,2736 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница клуба</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery.min.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Подключение библиотеки inputmask -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
+
+</head>
+<body>
+
+
+<style>
+    .navbar-nav .nav-link {
+        position: relative;
+        color: white;
+    }
+
+    .navbar-nav .nav-item:not(.dropdown) .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        display: block;
+        margin-top: 5px;
+        right: 0;
+        background: red;
+        transition: width 0.3s ease;
+        -webkit-transition: width 0.3s ease;
+    }
+
+    .navbar-nav .nav-item:not(.dropdown) .nav-link:hover::after {
+        width: 100%;
+        left: 0;
+        background: red;
+    }
+</style>
+
+<nav class="navbar nv-1 navbar-expand-lg navbar-dark bg-dark">
+    <!-- Логотип (название клуба) -->
+    <a class="navbar-brand" href="#">{{ club_name }}</a>
+
+    <!-- Кнопка для сворачивания меню на мобильных устройствах -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav1"
+            aria-controls="navbarNav1" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Меню с функциями -->
+    <div class="collapse navbar-collapse" id="navbarNav1">
+        <ul class="navbar-nav ml-right">
+            <li class="nav-item">
+                <a class="nav-link text-center" href="#" data-toggle="modal" data-target="#adminModal">Выбор админов</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-center" href="#" data-toggle="modal" data-target="#warningInfoModal">Важная
+                    информация</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-center" href="{% url 'graph' club_id=CID %}">График смен</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-center" href="#" data-toggle="modal" data-target="#calcModal">Калькулятор</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-center" href="{% url 'scheme' club_id=CID %}">Схема клуба</a>
+            </li>
+            <!-- Доп.опции с выпадающим меню -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-center" href="#" id="extraOptionsDropdown" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Доп.опции</a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="extraOptionsDropdown">
+                    <a class="dropdown-item" href="{% url 'logs' club_id=CID %}">Логи</a>
+                    <a class="dropdown-item" href="{% url 'stat' club_id=CID %}">Статистика</a>
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#actionModal">Акции и
+                        партнеры</a>
+
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-center" href="{% url 'scheme_free' club_id=CID %}">Места - схематично</a>
+            </li>
+
+
+        </ul>
+
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-center" href="#" id="clubsDropdown" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Клубы</a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="clubsDropdown">
+                    {% for club in clubs %}
+                        <a class="dropdown-item" href="javascript:void(0);"
+                           onclick="changeClubAndReload('{{ club.name }}')">{{ club.name }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Навигационная шапка 2 | АДМИНЫ + ДОБАВИТЬ -->
+<nav class="navbar nv-2 navbar-expand-lg navbar-dark bg-dark">
+    <!-- Меню с функциями -->
+    <div class="navbar-collapse text-center">
+        <ul class="navbar-nav mx-auto mt-2" id="adminButtons">
+            <!-- Кнопки в центре будут добавлены динамически с помощью JavaScript -->
+        </ul>
+
+        <li class="nav-item mt-2" style="margin-right: 20px; list-style-type:  none;">
+            <button type="button" class="btn btn-success" style="border-radius: 0;" data-toggle="modal"
+                    data-target="#addRecordModal" id="openAddRecordModalBtn">Добавить запись
+            </button>
+        </li>
+    </div>
+</nav>
+
+
+<!-- Навигационная шапка 3 | ВАЖНАЯ ИНФОМРАЦИЯ -->
+<nav class="navbar nv-3 navbar-expand-lg navbar-dark bg-dark">
+    <div class="navbar-collapse text-center">
+        <ul class="navbar-nav mx-left">
+            <span style="color: white;"> Важная информация: {{ WI }} </span>
+        </ul>
+
+    </div>
+</nav>
+
+
+<!--ТАБЛИЦА-->
+<table class="table" id="notesTable" style="text-align: center;">
+    <thead>
+    <tr>
+        <th scope="col">Время с</th>
+        <th scope="col">Время до</th>
+        <th scope="col">Устройства</th>
+        <th scope="col">Чел.</th>
+        <th scope="col">Имя</th>
+        <th scope="col" style="min-width: 100px;">Номер</th>
+        <th scope="col">Дополнительная информация</th>
+        <th scope="col">Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+
+
+<!-- стили для шапки и отступов -->
+<style>
+    /* Стиль для фиксированных навигационных шапок */
+    .nv-1 {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000; /* Высокий z-index для верхней шапки */
+    }
+
+    .nv-2 {
+        position: fixed;
+        top: 40px;
+        width: 100%;
+        z-index: 1; /* Тот же z-index, что и у .nv-1 */
+    }
+
+    .nv-3 {
+        position: fixed;
+        top: 100px;
+        width: 100%;
+        z-index: 1; /* Тот же z-index, что и у .nv-1 */
+    }
+
+    @media (max-width: 992px) {
+        /* Медиа-запрос для экранов шириной 992px и меньше */
+        .nv-3 {
+            top: 140px;
+        }
+    }
+
+
+    /* Отступ для таблицы под фиксированными шапками */
+    #notesTable {
+        margin-top: 140px; /* Высота всех трех шапок (по 40px каждая) */
+        position: relative; /* Добавлено для предотвращения перекрытия */
+    }
+
+    @media (max-width: 992px) {
+        /* Медиа-запрос для экранов шириной 992px и меньше */
+        #notesTable {
+            margin-top: 170px; /* Adjust the value according to your design */
+        }
+    }
+</style>
+
+
+<!--   ----------------------------------------------------------------   -->
+<!--     МОДАЛЬНЫЕ ОКНА -->
+<!--   ----------------------------------------------------------------   -->
+
+
+<!-- Модальное окно для выбора администраторов -->
+<div class="modal fade" id="adminModal" tabindex="-1" role="dialog" aria-labelledby="adminModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adminModalLabel">Выбор администраторов</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Модальное тело -->
+            <div class="modal-body">
+                <div class="scrollable-list" style="max-height: 600px; overflow-y: auto;">
+                    <form id="adminForm">
+                        {% for admin in admins %}
+                            <div class="form-group admin-entry" onclick="toggleCheckbox(this)">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input adminCheckbox"
+                                           id="adminCheckbox{{ admin.id }}" name="adminCheckbox" value="{{ admin.id }}"
+                                           data-admin-name="{{ admin.name }}">
+                                    <label class="custom-control-label"
+                                           for="adminCheckbox{{ admin.id }}">{{ admin.name }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Модальный футер (по вашему усмотрению) -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="saveSelection()">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .admin-entry {
+        padding-bottom: 12px; /* Регулируйте размер паддинга по вашему вкусу */
+        border-bottom: 1px solid #ddd; /* Линия разделения между записями */
+        cursor: pointer; /* Изменение курсора при наведении для обозначения кликабельности */
+    }
+
+    .admin-entry:last-child {
+        border-bottom: none; /* Убираем линию разделения для последней записи */
+    }
+</style>
+
+
+<!-- Модальное окно для редактирования важной информации-->
+<div class="modal fade" id="warningInfoModal" tabindex="-1" role="dialog" aria-labelledby="warningInfoModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="warningInfoModalLabel">Важная информация</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+
+            <!-- Модальное тело -->
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="warningInfoTextarea">Напишите текст новой "важной информации":</label>
+                    <textarea class="form-control" id="warningInfoTextarea" rows="5"></textarea>
+                </div>
+            </div>
+
+
+            <!-- Модальный футер -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="saveWarningInfoSelection()">Сохранить изменения
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Модальное окно калькулятор -->
+<div class="modal fade" id="calcModal" tabindex="-1" role="dialog" aria-labelledby="calcModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="calcModalLabel">Калькулятор</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Модальное тело -->
+            <div class="modal-body">
+                <div class="form-group">
+                    <input style="margin-bottom: 20px;" id="peopleInput" type="number"> Сколько будет человек </input>
+                    <input style="margin-bottom: 20px;" type="number" id="hoursInput"> На сколько часов </input>
+                    {#                    <input style="margin-bottom: 20px;" type="number" id="minutesInput"> Минуты </input>#}
+
+                    <br>
+                    <p id="v_bpb"></p>
+                    <p id="v_bpv"></p>
+                    <p id="v_pb"></p>
+                    <p id="v_pV"></p>
+
+                    <p id="a_pb"></p>
+                    <p id="a_pV"></p>
+
+                    <p id="arvPrice"></p>
+                    <p id="arbPrice"></p>
+
+                </div>
+            </div>
+
+            <!-- Модальный футер -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculatePrice() {
+        var hours = parseFloat(document.getElementById('hoursInput').value) || 0;
+        //var hours = parseFloat(document.getElementById('hoursInput').value) + parseFloat(document.getElementById('minutesInput').value) / 60;
+        var people = parseFloat(document.getElementById('peopleInput').value) || 1;
+
+        // Рассчитываем общую стоимость
+        var v_bpb = hours * 199 * people;
+        var v_bpv = hours * 299 * people;
+        var v_pb = hours * 139 * people;
+        var v_pV = hours * 199 * people;
+
+        //Арены
+        var a_pb = hours * 199 * people;
+        var a_pV = hours * 299 * people;
+
+        // Рассчитываем стоимость аренды
+        var arvPrice;
+        var arbPrice;
+        var cp = 0;
+
+        if (hours === 1) {
+            if (parseInt(people) > 15) {
+                cp = (parseInt(people) - 15) * 100;
+            }
+            arvPrice = 2700 + parseInt(cp);
+            arbPrice = 2100 + parseInt(cp);
+        } else {
+            if (parseInt(people) > 15) {
+                cp = (parseInt(people) - 15) * 100;
+            }
+
+            arvPrice = 2700 + (2400 * (parseInt(hours) - 1)) + parseInt(cp);
+            arbPrice = 2100 + (1800 * (parseInt(hours) - 1)) + parseInt(cp);
+
+        }
+
+        document.getElementById('v_bpb').innerText = "Будни БЕЗ Подписки: " + v_bpb;
+        document.getElementById('v_bpv').innerText = "Выходной БЕЗ Подписки: " + v_bpv;
+        document.getElementById('v_pb').innerText = "Будни С Подпиской: " + v_pb;
+        document.getElementById('v_pV').innerText = "Выходной С Подпиской: " + v_pV;
+
+
+        document.getElementById('a_pb').innerText = "Будни арена: " + a_pb;
+        document.getElementById('a_pV').innerText = "Выходной арена: " + a_pV;
+
+
+        document.getElementById('arvPrice').innerText = "Аренда выходные: " + arvPrice;
+        document.getElementById('arbPrice').innerText = "Аренда будни: " + arbPrice;
+
+
+    }
+
+
+    document.getElementById('hoursInput').addEventListener('input', calculatePrice);
+    document.getElementById('peopleInput').addEventListener('input', calculatePrice);
+
+</script>
+
+
+<style>
+    .modal-body p {
+        font-family: 'Courier New', Courier, monospace; /* Моноширинный шрифт для кода */
+        font-size: 19px; /* Размер шрифта */
+        line-height: 1.5; /* Высота строки для лучшей читабельности */
+        padding: 5px 15px; /* Отступы внутри элемента */
+        border-radius: 5px; /* Скругленные углы */
+        margin-bottom: 10px; /* Отступ между абзацами */
+    }
+</style>
+
+<!-- Модальное окно для акции и партнеры -->
+<div class="modal fade" id="actionModal" tabindex="-1" role="dialog" aria-labelledby="actionModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adminModalLabel">Акции и партнеры</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Модальное тело -->
+            <div class="modal-body">
+                <div id="formattedText"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const actionAndPart = `{{ action_and_part | safe }}`;  // Your multiline text here
+        const formattedText = document.getElementById('formattedText');
+
+        // Split the text by newlines and create <p> elements
+        actionAndPart.split('\n').forEach(line => {
+            const p = document.createElement('p');
+            p.textContent = line.trim();
+            formattedText.appendChild(p);
+        });
+    });
+</script>
+
+
+
+
+
+
+
+<!-- Модальное окно для добавления записи -->
+<div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog" aria-labelledby="addRecordModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRecordModalLabel">Добавление записи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    {% csrf_token %}
+                    <!-- Поле ввода даты -->
+                    <div class="form-group">
+                        <label for="dateInput">Дата</label>
+                        <input type="date" class="form-control" id="dateInput" required>
+                    </div>
+
+                    <!-- Поля ввода времени -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="timeFromInput">Время с</label>
+                            <input type="time" class="form-control" id="timeFromInput" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="timeToInput">Время до</label>
+                            <input type="time" class="form-control" id="timeToInput" required>
+                        </div>
+                    </div>
+
+
+                    <!-- Устройства -->
+                    <div class="form-group">
+                        <label for="dvForm">Список устройств</label>
+                        <div class="scrollable-list" style="max-height: 600px; overflow-y: auto;">
+                            <form id="dvForm">
+                                {% for dv in devices %}
+                                    <div style="padding-left: 5px; margin-bottom: 1px;
+                                            {% if 'ПЛОЙКА' in dv.name %} background-color: Moccasin;
+                                            {% elif 'АРЕНДА' in dv.name %} background-color: Tomato;
+                                            {% elif 'НИНТЕНДО' in dv.name or 'РОКБЕНД' in dv.name or 'ГИТАР_ХЕРО/ПЛОЙКА' in dv.name or 'ГИТАР_ХЕРО' in dv.name or 'ДЖАСТ_ДЭНС' in dv.name or 'ИКСБОКС' in dv.name or 'ДИДЖЕЙ_ХЕРО' in dv.name %} background-color: lightpink;
+                                            {% elif 'КВЕСТ' in dv.name or 'ПИКО' in dv.name %} background-color: Coral;
+                                            {% elif 'ПСВР' in dv.name %} background-color: lightskyblue;
+                                            {% elif 'ЖИВАЯ_КОМНАТА' in dv.name or 'КИКЕР' in dv.name or 'БИЛЬЯРД' in dv.name or 'ТЕННИС' in dv.name in dv.name or 'АЭРОХОККЕЙ' in dv.name %} background-color: lightgreen;
+                                            {% elif 'ВИАРКОМ' in dv.name %} background-color: lightpink;
+                                            {% elif 'ФУРШЕТКА' in dv.name or 'СОБРАНИЕ' in dv.name or 'НАСТОЛКИ' in dv.name %} background-color: Orchid;
+                                            {% endif %}" class="form-group device-entry" data-device-id="{{ dv.id }}">
+                                        <label style="padding-top: 10px; padding-bottom: 10px; margin-bottom: 0"
+                                               class="custom-control custom-checkbox device-label">
+                                            <input type="checkbox" class="custom-control-input dvCheckbox"
+                                                   id="dvCheckbox{{ dv.id }}" name="dvCheckbox"
+                                                   value="{{ dv.id }}" data-device-name="{{ dv.name }}">
+                                            <span class="custom-control-label">{{ dv.name }}</span>
+                                        </label>
+                                    </div>
+                                    <hr style="margin-bottom: 0; margin-top: 0;">
+                                {% endfor %}
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- Поле ввода количества человек -->
+                    <div class="form-group">
+                        <label for="attendeesInput">Количество человек</label>
+                        <input type="text" class="form-control" id="attendeesInput"
+                               placeholder="Укажите сколько человек собирается прийти" required>
+                    </div>
+
+                    <!-- Поля ввода имени и номера -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="nameInput">Имя</label>
+                            <input type="text" class="form-control" id="nameInput"
+                                   placeholder="Фамилия и имя" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="phoneNumberInput">Номер</label>
+                            <input type="tel" class="form-control phone-mask" id="phoneNumberInput" required>
+                        </div>
+                    </div>
+
+                    <!-- Всплывающее меню выбора места -->
+                    <div class="form-group">
+                        <label for="placeSelect">Выбор места</label>
+                        <select class="form-control" id="placeSelect">
+                            <option></option>
+                            {% for pl in places %}
+                                <option>{{ pl }}</option>
+                            {% endfor %}
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Большое поле для дополнительной информации -->
+                    <div class="form-group">
+                        <label for="additionalInfoTextarea">Дополнительная информация</label>
+                        <textarea class="form-control" id="additionalInfoTextarea" rows="4"></textarea>
+                    </div>
+
+                    <!-- Блок полей аренды (начально скрыт) -->
+                    <div class="form-group" id="rentFields" style="display: none;">
+                        <!-- Сумма предоплаты -->
+                        <label for="prepaymentAmountInput">Сумма предоплаты</label>
+                        <input type="number" class="form-control" id="prepaymentAmountInput"
+                               placeholder="Если предоплаты нет оставьте поле пустым">
+
+                        <!-- Способ предоплаты -->
+                        <label for="prepaymentMethodSelect">Способ предоплаты</label>
+                        <select class="form-control" id="prepaymentMethodSelect">
+                            <option></option>
+                            <option>Перевод</option>
+                            <option>Карта</option>
+                            <option>Наличные</option>
+                            <option>Расчетный счет</option>
+                        </select>
+
+                        <!-- Место предоплаты -->
+                        <label for="prepaymentPlaceSelect">Где произведена предоплата</label>
+                        <select class="form-control" id="prepaymentPlaceSelect">
+                            <option></option>
+                            {% for club in clubs %}
+                                <option>{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <!-- Кнопка очистки поля дополнительной информации -->
+                    <button type="button" class="btn btn-secondary" id="clearAdditionalInfoBtnAdd">Очистить
+                        Доп.Информацию
+                    </button>
+
+
+                    <!-- Всплывающее меню выбора откуда пришла запись -->
+                    <div class="form-group">
+                        <label for="WhereSelect">Откуда</label>
+                        <select class="form-control" id="WhereSelect">
+                            <option></option>
+                            <option>БЕЗ ЗАПИСИ</option>
+                            <option>ЗВОНОК В КОЛЛ-ЦЕНТР</option>
+                            <option>ЛИЧНО В КЛУБЕ</option>
+                            <option>ЗВОНОК В КЛУБ</option>
+                            <option>СМС</option>
+                            <option>ВК ВИАРЧИК</option>
+                            <option>ВК КИРОВ 1</option>
+                            <option>ВК КИРОВ 2</option>
+                            <option>ВК ИЖЕВСК</option>
+                            <option>САЙТ КИРОВ</option>
+                            <option>САЙТ ИЖЕВСК</option>
+                            <option>VIBER</option>
+                            <option>WHATSAPP</option>
+                            <option>TELEGRAM</option>
+                            <option>РАЗВЛЕКАРТА ВК</option>
+                            <option>ДРУГОЕ (ЛИЧНО)</option>
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Галочки ЧЕК, ПДА, ВК, ВТ, ТГ, ВБ, СМС -->
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-outline-success btn-switch">
+                            <input type="checkbox" id="checkCheckbox" checked autocomplete="off"> ЧЕК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="pdaCheckbox" checked autocomplete="off"> ПДА
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="vkCheckbox" checked autocomplete="off"> ВК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="vtCheckbox" checked autocomplete="off"> ВТ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="tgCheckbox" checked autocomplete="off"> ТГ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="vbCheckbox" checked autocomplete="off"> ВБ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="smsCheckbox" checked autocomplete="off"> СМС
+                        </label>
+                    </div>
+
+                    <!-- Галочки цветов -->
+                    <div class="btn-group-toggle" data-toggle="buttons" STYLE="margin-top: 20px;">
+                        <label class="btn btn-outline-secondary btn-switch">
+                            <input type="checkbox" id="BCheckbox" checked autocomplete="off">{С}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="GCheckbox" checked autocomplete="off">{З}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="YCheckbox" checked autocomplete="off">{Ж}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="RCheckbox" checked autocomplete="off">{К}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="MCheckbox" checked autocomplete="off">{Ф}
+                        </label>
+                    </div>
+
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="saveRecordBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<!-- Модальное окно для редактирования записи -->
+<div class="modal fade" id="editRecordModal" tabindex="-1" role="dialog" aria-labelledby="editRecordModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 style="text-align: center" id="editRecordIdLabel">Редактирование записи с ID:</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    {% csrf_token %}
+                    <!-- Поле ввода даты -->
+                    <div class="form-group">
+                        <label for="EdateInput">Дата</label>
+                        <input type="date" class="form-control" id="EdateInput" required>
+                    </div>
+
+                    <!-- Поля ввода времени -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="EtimeFromInput">Время с</label>
+                            <input type="time" class="form-control" id="EtimeFromInput" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="EtimeToInput">Время до</label>
+                            <input type="time" class="form-control" id="EtimeToInput" required>
+                        </div>
+                    </div>
+
+
+                    <!-- Устройства -->
+                    <div class="form-group">
+                        <label for="EdvForm">Список устройств</label>
+                        <div class="scrollable-list" style="max-height: 600px; overflow-y: auto;">
+                            <form id="EdvForm">
+                                {% for dv in devices %}
+                                    <div style="padding-left: 5px; margin-bottom: 1px;
+                                            {% if 'ПЛОЙКА' in dv.name %} background-color: Moccasin;
+                                            {% elif 'АРЕНДА' in dv.name %} background-color: Tomato;
+                                            {% elif 'НИНТЕНДО' in dv.name or 'РОКБЕНД' in dv.name or 'ГИТАР_ХЕРО/ПЛОЙКА' in dv.name or 'ГИТАР_ХЕРО' in dv.name or 'ДЖАСТ_ДЭНС' in dv.name or 'ИКСБОКС' in dv.name or 'ДИДЖЕЙ_ХЕРО' in dv.name %} background-color: lightpink;
+                                            {% elif 'КВЕСТ' in dv.name or 'ПИКО' in dv.name %} background-color: Coral;
+                                            {% elif 'ПСВР' in dv.name %} background-color: lightskyblue;
+                                            {% elif 'ЖИВАЯ_КОМНАТА' in dv.name or 'КИКЕР' in dv.name or 'БИЛЬЯРД' in dv.name or 'ТЕННИС' in dv.name in dv.name or 'АЭРОХОККЕЙ' in dv.name %} background-color: lightgreen;
+                                            {% elif 'ВИАРКОМ' in dv.name %} background-color: lightpink;
+                                            {% elif 'ФУРШЕТКА' in dv.name or 'СОБРАНИЕ' in dv.name or 'НАСТОЛКИ' in dv.name %} background-color: Orchid;
+                                            {% endif %}" class="form-group device-entry"
+                                         data-device-id="{{ dv.id }}">
+                                        <label style="padding-top: 10px; padding-bottom: 10px; margin-bottom: 0"
+                                               class="custom-control custom-checkbox device-label">
+                                            <input type="checkbox" class="custom-control-input EdvCheckbox"
+                                                   id="EdvCheckbox{{ dv.id }}"
+                                                   name="EdvCheckbox" value="{{ dv.id }}"
+                                                   data-device-name="{{ dv.name }}">
+                                            <span class="custom-control-label">{{ dv.name }}</span>
+                                        </label>
+                                    </div>
+
+                                    <hr style="margin-bottom: 0; margin-top: 0;">
+
+                                {% endfor %}
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- Поле ввода количества человек -->
+                    <div class="form-group">
+                        <label for="EattendeesInput">Количество человек</label>
+                        <input type="text" class="form-control" id="EattendeesInput"
+                               placeholder="Укажите сколько человек собирается прийти" required>
+                    </div>
+
+                    <!-- Поля ввода имени и номера -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="EnameInput">Имя</label>
+                            <input type="text" class="form-control" id="EnameInput"
+                                   placeholder="Фамилия и имя" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="EphoneNumberInput">Номер</label>
+                            <input type="tel" class="form-control phone-mask" id="EphoneNumberInput" required>
+                        </div>
+                    </div>
+
+                    <!-- Всплывающее меню выбора места -->
+                    <div class="form-group">
+                        <label for="placeSelect">Выбор места</label>
+                        <select class="form-control" id="EplaceSelect">
+                            <option></option>
+                            {% for pl in places %}
+                                <option>{{ pl }}</option>
+                            {% endfor %}
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Большое поле для дополнительной информации -->
+                    <div class="form-group">
+                        <label for="EadditionalInfoTextarea">Дополнительная информация</label>
+                        <textarea class="form-control" id="EadditionalInfoTextarea" rows="4"></textarea>
+                    </div>
+
+                    <!-- Блок полей аренды (начально скрыт) -->
+                    <div class="form-group" id="ErentFields" style="display: none;">
+                        <!-- Сумма предоплаты -->
+                        <label for="EprepaymentAmountInput">Сумма предоплаты</label>
+                        <input type="number" class="form-control" id="EprepaymentAmountInput"
+                               placeholder="Если предоплаты нет оставьте поле пустым">
+
+                        <!-- Способ предоплаты -->
+                        <label for="EprepaymentMethodSelect">Способ предоплаты</label>
+                        <select class="form-control" id="EprepaymentMethodSelect">
+                            <option></option>
+                            <option>Перевод</option>
+                            <option>Карта</option>
+                            <option>Наличные</option>
+                            <option>Расчетный счет</option>
+                        </select>
+
+                        <!-- Место предоплаты -->
+                        <label for="EprepaymentPlaceSelect">Где произведена предоплата</label>
+                        <select class="form-control" id="EprepaymentPlaceSelect">
+                            <option></option>
+                            {% for club in clubs %}
+                                <option>{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <!-- Кнопка очистки поля дополнительной информации -->
+                    <button type="button" class="btn btn-secondary" id="clearAdditionalInfoBtn">Очистить
+                        Доп.Информацию
+                    </button>
+
+
+                    <!-- Всплывающее меню выбора откуда пришла запись -->
+                    <div class="form-group">
+                        <label for="EWhereSelect">Откуда</label>
+                        <select class="form-control" id="EWhereSelect">
+                            <option></option>
+                            <option>БЕЗ ЗАПИСИ</option>
+                            <option>ЗВОНОК В КОЛЛ-ЦЕНТР</option>
+                            <option>ЛИЧНО В КЛУБЕ</option>
+                            <option>ЗВОНОК В КЛУБ</option>
+                            <option>СМС</option>
+                            <option>ВК ВИАРЧИК</option>
+                            <option>ВК КИРОВ 1</option>
+                            <option>ВК КИРОВ 2</option>
+                            <option>ВК ИЖЕВСК</option>
+                            <option>САЙТ КИРОВ</option>
+                            <option>САЙТ ИЖЕВСК</option>
+                            <option>VIBER</option>
+                            <option>WHATSAPP</option>
+                            <option>TELEGRAM</option>
+                            <option>РАЗВЛЕКАРТА ВК</option>
+                            <option>ДРУГОЕ (ЛИЧНО)</option>
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Галочки ЧЕК, ВК, ВТ, ТГ -->
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EcheckCheckbox" checked autocomplete="off"> ЧЕК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EpdaCheckbox" checked autocomplete="off"> ПДА
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EvkCheckbox" checked autocomplete="off"> ВК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EvtCheckbox" checked autocomplete="off"> ВТ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EtgCheckbox" checked autocomplete="off"> ТГ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EvbCheckbox" checked autocomplete="off"> ВБ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="EsmsCheckbox" checked autocomplete="off"> СМС
+                        </label>
+                    </div>
+
+                    <!-- Галочки цветов -->
+                    <div class="btn-group-toggle" data-toggle="buttons" STYLE="margin-top: 20px;">
+                        <label class="btn btn-outline-secondary btn-switch">
+                            <input type="checkbox" id="BECheckbox" checked autocomplete="off">{С}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="GECheckbox" checked autocomplete="off">{З}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="YECheckbox" checked autocomplete="off">{Ж}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="RECheckbox" checked autocomplete="off">{К}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="MECheckbox" checked autocomplete="off">{Ф}
+                        </label>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="EsaveRecordBtn">Изменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для разделения записи -->
+<div class="modal fade" id="SeparRecordModal" tabindex="-1" role="dialog" aria-labelledby="SeparRecordModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 style="text-align: center" id="SeparRecordIdLabel">Разделение записи с ID:</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    {% csrf_token %}
+                    <!-- Поле ввода даты -->
+                    <div class="form-group">
+                        <label for="EdateInput">Дата</label>
+                        <input type="date" class="form-control" id="SdateInput" required>
+                    </div>
+
+                    <!-- Поля ввода времени -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="EtimeFromInput">Время с</label>
+                            <input type="time" class="form-control" id="StimeFromInput" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="EtimeToInput">Время до</label>
+                            <input type="time" class="form-control" id="StimeToInput" required>
+                        </div>
+                    </div>
+
+
+                    <!-- Устройства -->
+                    <div class="form-group">
+                        <label for="EdvForm">Список устройств</label>
+                        <div class="scrollable-list" style="max-height: 600px; overflow-y: auto;">
+                            <form id="SdvForm">
+                                {% for dv in devices %}
+                                    <div style="padding-left: 5px; margin-bottom: 1px;
+                                            {% if 'ПЛОЙКА' in dv.name %} background-color: Moccasin;
+                                            {% elif 'АРЕНДА' in dv.name %} background-color: Tomato;
+                                            {% elif 'НИНТЕНДО' in dv.name or 'РОКБЕНД' in dv.name or 'ГИТАР_ХЕРО/ПЛОЙКА' in dv.name or 'ГИТАР_ХЕРО' in dv.name or 'ДЖАСТ_ДЭНС' in dv.name or 'ИКСБОКС' in dv.name or 'ДИДЖЕЙ_ХЕРО' in dv.name %} background-color: lightpink;
+                                            {% elif 'КВЕСТ' in dv.name or 'ПИКО' in dv.name %} background-color: Coral;
+                                            {% elif 'ПСВР' in dv.name %} background-color: lightskyblue;
+                                            {% elif 'ЖИВАЯ_КОМНАТА' in dv.name or 'КИКЕР' in dv.name or 'БИЛЬЯРД' in dv.name or 'ТЕННИС' in dv.name in dv.name or 'АЭРОХОККЕЙ' in dv.name %} background-color: lightgreen;
+                                            {% elif 'ВИАРКОМ' in dv.name %} background-color: lightpink;
+                                            {% elif 'ФУРШЕТКА' in dv.name or 'СОБРАНИЕ' in dv.name or 'НАСТОЛКИ' in dv.name %} background-color: Orchid;
+                                            {% endif %}" class="form-group device-entry"
+                                         data-device-id="{{ dv.id }}">
+                                        <label style="padding-top: 10px; padding-bottom: 10px; margin-bottom: 0"
+                                               class="custom-control custom-checkbox device-label">
+                                            <input type="checkbox" class="custom-control-input SdvCheckbox"
+                                                   id="SdvCheckbox{{ dv.id }}"
+                                                   name="SdvCheckbox" value="{{ dv.id }}"
+                                                   data-device-name="{{ dv.name }}">
+                                            <span class="custom-control-label">{{ dv.name }}</span>
+                                        </label>
+                                    </div>
+
+                                    <hr style="margin-bottom: 0; margin-top: 0;">
+
+                                {% endfor %}
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- Поле ввода количества человек -->
+                    <div class="form-group">
+                        <label for="EattendeesInput">Количество человек</label>
+                        <input type="text" class="form-control" id="SattendeesInput"
+                               placeholder="Укажите сколько человек собирается прийти" required>
+                    </div>
+
+                    <!-- Поля ввода имени и номера -->
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="EnameInput">Имя</label>
+                            <input type="text" class="form-control" id="SnameInput"
+                                   placeholder="Фамилия и имя" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="SphoneNumberInput">Номер</label>
+                            <input type="tel" class="form-control phone-mask" id="SphoneNumberInput" required>
+                        </div>
+                    </div>
+
+                    <!-- Всплывающее меню выбора места -->
+                    <div class="form-group">
+                        <label for="placeSelect">Выбор места</label>
+                        <select class="form-control" id="SplaceSelect">
+                            <option></option>
+                            {% for pl in places %}
+                                <option>{{ pl }}</option>
+                            {% endfor %}
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Большое поле для дополнительной информации -->
+                    <div class="form-group">
+                        <label for="SadditionalInfoTextarea">Дополнительная информация</label>
+                        <textarea class="form-control" id="SadditionalInfoTextarea" rows="4"></textarea>
+                    </div>
+
+                    <!-- Блок полей аренды (начально скрыт) -->
+                    <div class="form-group" id="SrentFields" style="display: none;">
+                        <!-- Сумма предоплаты -->
+                        <label for="EprepaymentAmountInput">Сумма предоплаты</label>
+                        <input type="number" class="form-control" id="SprepaymentAmountInput"
+                               placeholder="Если предоплаты нет оставьте поле пустым">
+
+                        <!-- Способ предоплаты -->
+                        <label for="EprepaymentMethodSelect">Способ предоплаты</label>
+                        <select class="form-control" id="SprepaymentMethodSelect">
+                            <option></option>
+                            <option>Перевод</option>
+                            <option>Карта</option>
+                            <option>Наличные</option>
+                            <option>Расчетный счет</option>
+                        </select>
+
+                        <!-- Место предоплаты -->
+                        <label for="EprepaymentPlaceSelect">Где произведена предоплата</label>
+                        <select class="form-control" id="SprepaymentPlaceSelect">
+                            <option></option>
+                            {% for club in clubs %}
+                                <option>{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <!-- Кнопка очистки поля дополнительной информации -->
+                    <button type="button" class="btn btn-secondary" id="SclearAdditionalInfoBtn">Очистить
+                        Доп.Информацию
+                    </button>
+
+
+                    <!-- Всплывающее меню выбора откуда пришла запись -->
+                    <div class="form-group">
+                        <label for="EWhereSelect">Откуда</label>
+                        <select class="form-control" id="SWhereSelect">
+                            <option></option>
+                            <option>БЕЗ ЗАПИСИ</option>
+                            <option>ЗВОНОК В КОЛЛ-ЦЕНТР</option>
+                            <option>ЛИЧНО В КЛУБЕ</option>
+                            <option>ЗВОНОК В КЛУБ</option>
+                            <option>СМС</option>
+                            <option>ВК ВИАРЧИК</option>
+                            <option>ВК КИРОВ 1</option>
+                            <option>ВК КИРОВ 2</option>
+                            <option>ВК ИЖЕВСК</option>
+                            <option>САЙТ КИРОВ</option>
+                            <option>САЙТ ИЖЕВСК</option>
+                            <option>VIBER</option>
+                            <option>WHATSAPP</option>
+                            <option>TELEGRAM</option>
+                            <option>РАЗВЛЕКАРТА ВК</option>
+                            <option>ДРУГОЕ (ЛИЧНО)</option>
+                            <!-- Добавьте остальные варианты по необходимости -->
+                        </select>
+                    </div>
+
+
+                    <!-- Галочки ЧЕК, ВК, ВТ, ТГ -->
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="ScheckCheckbox" checked autocomplete="off"> ЧЕК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="SpdaCheckbox" checked autocomplete="off"> ПДА
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="SvkCheckbox" checked autocomplete="off"> ВК
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="SvtCheckbox" checked autocomplete="off"> ВТ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="StgCheckbox" checked autocomplete="off"> ТГ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="SvbCheckbox" checked autocomplete="off"> ВБ
+                        </label>
+                        <label class="btn btn-outline-success">
+                            <input type="checkbox" id="SsmsCheckbox" checked autocomplete="off"> СМС
+                        </label>
+                    </div>
+
+                    <!-- Галочки цветов -->
+                    <div class="btn-group-toggle" data-toggle="buttons" STYLE="margin-top: 20px;">
+                        <label class="btn btn-outline-secondary btn-switch">
+                            <input type="checkbox" id="BSCheckbox" checked autocomplete="off">{С}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="GSCheckbox" checked autocomplete="off">{З}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="YSCheckbox" checked autocomplete="off">{Ж}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="RSCheckbox" checked autocomplete="off">{К}
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="checkbox" id="MSCheckbox" checked autocomplete="off">{Ф}
+                        </label>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="SsaveRecordBtn">Внести</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    /* Стили для модального окна добавления записи */
+    #addRecordModal .device-entry:hover {
+        background-color: #efefef; /* Изменение цвета при наведении */
+    }
+
+    /* Стили для модального окна редактирования записи */
+    #editRecordModal .device-entry:hover {
+        background-color: #efefef; /* Изменение цвета при наведении */
+    }
+
+
+</style>
+
+<!-- Подтверждение УШЛИ -->
+<div class="modal fade" id="confirmationModalDelete" tabindex="-1" role="dialog"
+     aria-labelledby="confirmationModalDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalDeleteLabel">Подтверждение действия УШЛИ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Вы уверены что гости ушли ? Мммм ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmLeaveBtn">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Перенос записи -->
+<div class="modal fade" id="confirmationModalTransfer" tabindex="-1" role="dialog"
+     aria-labelledby="confirmationModalTransferLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalTransferLabel">Перенос записи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h3>Выберите клуб</h3>
+                <div class="modal-body">
+
+                    <select id="clubSelect">
+                        {% for cl in clubs %}
+                            {{ cl }}
+                            <option value="{{ cl }}"> {{ cl }} </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmTransferBtn">Перенести</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Подтверждение ОТМЕНЫ -->
+<div class="modal fade" id="confirmationModalExit" tabindex="-1" role="dialog"
+     aria-labelledby="confirmationModalExitLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalExitLabel">Подтверждение действия ОТМЕНА ЗАПИСИ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Гости не придут в клуб? это ОТМЕНА записи! и это не пойдёт в статистику учтённых записей! Если вы
+                уверены нажмите подтвердить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmExitBtn">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Модальное окно для отображения номера телефона -->
+<div class="modal fade" id="phoneNumberModal" tabindex="-1" role="dialog" aria-labelledby="phoneNumberModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="phoneNumberModalLabel">Номер телефона</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4 id="guest_surname"></h4>
+                <h4 id="guest_name"></h4>
+                <h4 id="guest_phone"></h4>
+                <h4 id="guest_dt"></h4>
+                <h4 id="guest_tmb"></h4>
+                <h4 id="guest_stp"></h4>
+                <h4 id="guest_bon"></h4>
+                <h4 id="guest_dop"></h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--   ----------------------------------------------------------------   -->
+<!--   ----------------------------------------------------------------   -->
+
+
+<style>
+    /* Общие стили для таблицы */
+    #notesTable {
+        border: 2px solid rgba(0, 0, 0, 0.5); /* Граница таблицы полупрозрачная */
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* Стили для строк с датой */
+    .date-row {
+        background-color: #fade6c; /* Фон строки с датой */
+    }
+
+    /* Подсветка при наведении на строку */
+    #notesTable tbody tr:hover {
+        background-color: #e0e0e0; /* Цвет подсветки при наведении */
+    }
+
+    /* Стили для всех ячеек в таблице */
+    #notesTable td, #notesTable th {
+        text-align: center; /* Выравнивание текста по центру */
+        padding-top: 10px; /* Внутренний отступ */
+        vertical-align: middle;
+        border: 1px solid rgba(0, 0, 0, 0.5); /* Вертикальные полосы между колонками */
+    }
+
+    /* Увеличение размера шрифта */
+    #notesTable td, #notesTable th {
+        vertical-align: middle;
+        font-size: 16px; /* Размер шрифта */
+    }
+
+    /* Вертикальные полосы между колонками */
+    #notesTable td, #notesTable th {
+        border: 1px solid rgba(0, 0, 0, 0.5);
+    }
+
+    /* Жирный текст */
+    .bold {
+        font-weight: bold;
+    }
+</style>
+
+
+<script>
+    var updateDataFlag = true;  // Флаг для управления выполнением функции
+    var isChecked = false;
+    var flag_admins = false;
+    var menuOpenFlag = false;
+
+
+    // Кнопка разделения записи
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    function handleSeparationClick(noteId) {
+        menuOpenFlag = false;
+        var clubName = '{{ club_name }}';
+        $('#SeparRecordIdLabel').text('Разделение записи с ID: ' + noteId);
+
+        $(document).ready(function () {
+            // Выполняем AJAX-запрос для получения данных
+            $.ajax({
+                type: 'GET',
+                url: '/get_record/' + noteId + '/',
+                data: {club: clubName},
+                success: function (data) {
+                    // Открываем модальное окно
+                    $('#SeparRecordModal').modal('show');
+                    $('#SrentFields').hide();
+
+                    // Заполняем поля модального окна данными из ответа
+                    $('#SdateInput').val(data.date);
+                    $('#StimeFromInput').val(data.time_from);
+                    $('#StimeToInput').val(data.time_to);
+                    $('#SattendeesInput').val(data.attendees_count);
+                    $('#SnameInput').val(data.full_name);
+
+                    if (data.phone_number == "БЕЗ НОМЕРА") {
+                        data.phone_number = ""
+                        $('.phone-mask').inputmask('8 (999) 999-99-99', {"placeholder": "_"});
+                    } else {
+                        $('.phone-mask').inputmask('8 (999) 999-99-99', {"placeholder": "_"});
+                    }
+                    $('#SphoneNumberInput').val(data.phone_number);
+                    $('#SadditionalInfoTextarea').val(data.additional_info);
+                    $('#SWhereSelect').val(data.where);
+
+                    // Установка галочек для устройств
+                    if (data.devices) {
+                        // Очищаем все галочки перед установкой новых
+                        $('.dvCheckbox').prop('checked', false);
+
+                        var devicesList = data.devices.join(';');
+
+                        // Разделяем строку на массив устройств
+                        var devicesArray = devicesList.split(';').map(function (device) {
+                            return device.trim(); // Убираем лишние пробелы
+                        });
+
+                        // Перебираем устройства и устанавливаем галочки для соответствующих чекбоксов
+                        devicesArray.forEach(function (deviceName) {
+                            // Находим чекбокс по имени устройства
+                            var checkbox = $('.SdvCheckbox[data-device-name="' + deviceName + '"]');
+
+                            // Проверяем, найден ли чекбокс, и устанавливаем галочку, если он найден
+                            if (checkbox.length > 0) {
+                                checkbox.prop('checked', true);
+
+                                // Проверяем, если выбранное устройство - "АРЕНДА", то показываем скрытые поля
+                                if (deviceName === 'АРЕНДА') {
+                                    $('#ErentFields').show();
+                                    $('#EprepaymentAmountInput').val(data.prepayment_amount);
+                                    $('#EprepaymentMethodSelect').val(data.prepayment_method);
+                                    $('#EprepaymentPlaceSelect').val(data.prepayment_place);
+                                } else {
+                                    $('#ErentFields').hide();
+                                }
+
+                            }
+                        });
+                    }
+
+
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    console.log(error);
+                    alert('Произошла ошибка при получении данных записи. Пожалуйста, повторите позже.');
+                }
+            });
+        });
+    }
+
+    $('#SclearAdditionalInfoBtn').click(function () {
+        $('#SadditionalInfoTextarea').val(''); // Очищаем поле
+    });
+
+    $(document).ready(function () {
+
+        // Отслеживаем изменения в поле выбора места
+        $('#SplaceSelect').change(function () {
+            // Получаем выбранное место
+            var selectedPlace = $(this).val();
+
+            // Получаем текущее значение дополнительной информации
+            var currentAdditionalInfo = $('#SadditionalInfoTextarea').val();
+
+            // Обновляем дополнительную информацию, добавляя выбранное место
+            var updatedAdditionalInfo = currentAdditionalInfo + ' ' + selectedPlace + ';';
+
+            // Устанавливаем новое значение дополнительной информации
+            $('#SadditionalInfoTextarea').val(updatedAdditionalInfo);
+        });
+
+
+        // Обработчик изменения состояния чекбоксов устройств
+        $('.SdvCheckbox').change(function () {
+            // Проверяем, есть ли выбранное устройство с именем "АРЕНДА"
+            if ($('.SdvCheckbox[data-device-name="АРЕНДА"]:checked').length > 0) {
+                // Если есть, показываем скрытый блок с арендными полями
+                $('#SrentFields').show();
+            } else {
+                // Если нет, скрываем блок с арендными полями
+                $('#SrentFields').hide();
+            }
+        });
+
+
+        // Добавляем обработчик события изменения состояния всех чекбоксов
+        $('.btn-group-toggle input[type="checkbox"]').change(function () {
+            // Получаем значение состояния текущего чекбокса
+            var checkboxChecked = $(this).is(':checked');
+
+            // Получаем текст, написанный на самом чекбоксе
+            var checkboxText = $(this).parent().text().trim();
+
+            if (checkboxText !== "Аренда") {
+                // Получаем текущее содержимое дополнительной информации
+                var additionalInfo = $('#SadditionalInfoTextarea').val();
+
+                // Проверяем состояние чекбокса и обновляем дополнительную информацию
+                if (checkboxChecked) {
+                    // Если чекбокс отмечен, добавляем его текст в дополнительную информацию
+                    additionalInfo += checkboxText.toUpperCase() + "; ";
+                } else {
+                    // Если чекбокс не отмечен, убираем его текст из дополнительной информации
+                    additionalInfo = additionalInfo.replace(checkboxText.toUpperCase() + "; ", "");
+                }
+
+                // Обновляем содержимое дополнительной информации
+                $('#SadditionalInfoTextarea').val(additionalInfo);
+            }
+        });
+
+
+        // Добавляем обработчик события изменения суммы предоплаты
+        $('#SprepaymentAmountInput').change(function () {
+            // Получаем значение суммы предоплаты
+            var SprepaymentAmount = $(this).val();
+            console.log(SprepaymentAmount);
+
+            // Получаем текущее содержимое дополнительной информации
+            var SadditionalInfo = $('#SadditionalInfoTextarea').val();
+
+            // Проверяем наличие суммы предоплаты и обновляем дополнительную информацию
+            if (SprepaymentAmount) {
+                SadditionalInfo += "ПОА:" + EprepaymentAmount + "р; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#SadditionalInfoTextarea').val(SadditionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#SprepaymentMethodSelect').change(function () {
+
+            // Получаем значение способа предоплаты
+            var prepaymentMethod = $(this).val();
+
+
+            var additionalInfo = $('#SadditionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentMethod) {
+                additionalInfo += "Р:" + prepaymentMethod + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#SadditionalInfoTextarea').val(additionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#SprepaymentPlaceSelect').change(function () {
+            // Получаем значение места предоплаты
+            var prepaymentPlace = $('#SprepaymentPlaceSelect').val();
+
+            var additionalInfo = $('#SadditionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentPlace) {
+                additionalInfo += "Г:" + prepaymentPlace + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#SadditionalInfoTextarea').val(additionalInfo);
+        });
+
+        // Обработчик нажатия кнопки "внести в мод окне изменения"
+        $('#SsaveRecordBtn').click(function () {
+            var noteId = $('#SeparRecordIdLabel').text().replace('Разделение записи с ID: ', '');
+            var clubName = '{{ club_name }}';
+            var activeAdminValue = getCookie('activeAdmin');
+
+
+            selectedDevices = [];
+
+            // Собираем данные из формы редактирования
+            $(".SdvCheckbox:checked").each(function () {
+                var deviceId = $(this).val();
+                var deviceName = $(this).data("device-name");
+
+                selectedDevices.push({
+                    id: deviceId,
+                    name: deviceName
+                });
+            });
+
+
+            var deviceNames = selectedDevices.map(function (device) {
+                return device.name;
+            });
+
+
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'club_name': clubName,
+                'date': $('#SdateInput').val(),
+                'time_from': $('#StimeFromInput').val(),
+                'time_to': $('#StimeToInput').val(),
+                'devices': deviceNames.join('; '),
+                'attendees_count': $('#SattendeesInput').val(),
+                'full_name': $('#SnameInput').val(),
+                'phone_number': $('#SphoneNumberInput').val(),
+                'additional_info': $('#SadditionalInfoTextarea').val(),
+                'where_select': $('#SWhereSelect').val(),
+                'activeAdmin': activeAdminValue,
+            };
+
+            // Отправляем AJAX-запрос на сервер
+            $.ajax({
+                type: 'POST',
+                url: '/separation_record/' + noteId + '/',  // Замените 'update_record' на ваш URL-шаблон обновления записи
+                data: data,
+                success: function (response) {
+                    // Обработка успешного запроса
+                    $('#editRecordModal').modal('hide'); // Закрываем модальное окно после успешного обновления
+                    location.reload()
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    if (xhr.status === 400) {
+
+                        // Ваш сервер вернул ошибку 400 (Bad Request)
+                        alert('Обнаружена плюшка: ' + xhr.responseText);
+
+                    } else {
+                        // Другие ошибки
+                        console.log(error);
+
+                        alert('Выберите администратора');
+                    }
+                }
+            });
+        });
+
+    });
+
+
+    // Кнопка редактирования
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    $('#clearAdditionalInfoBtn').click(function () {
+        $('#EadditionalInfoTextarea').val(''); // Очищаем поле
+    });
+
+
+    function handleEDITClick(noteId) {
+        menuOpenFlag = false;
+        var clubName = '{{ club_name }}';
+        $('#editRecordIdLabel').text('Редактирование записи с ID: ' + noteId);
+
+        $(document).ready(function () {
+            // Выполняем AJAX-запрос для получения данных
+            $.ajax({
+                type: 'GET',
+                url: '/get_record/' + noteId + '/',
+                data: {club: clubName},
+                success: function (data) {
+                    // Открываем модальное окно
+                    $('#editRecordModal').modal('show');
+                    // МАСКА К НОМЕРУ
+
+                    $('#ErentFields').hide();
+
+                    // Заполняем поля модального окна данными из ответа
+                    $('#EdateInput').val(data.date);
+                    $('#EtimeFromInput').val(data.time_from);
+                    $('#EtimeToInput').val(data.time_to);
+                    $('#EattendeesInput').val(data.attendees_count);
+                    $('#EnameInput').val(data.full_name);
+
+                    if (data.phone_number == "БЕЗ НОМЕРА") {
+                        data.phone_number = ""
+                        $('.phone-mask').inputmask('8 (999) 999-99-99', {"placeholder": "_"});
+                    } else {
+                        $('.phone-mask').inputmask('8 (999) 999-99-99', {"placeholder": "_"});
+                    }
+
+                    $('#EphoneNumberInput').val(data.phone_number);
+
+
+                    $('#EadditionalInfoTextarea').val(data.additional_info);
+                    $('#EWhereSelect').val(data.where);
+
+                    // Установка галочек для устройств
+                    if (data.devices) {
+                        // Очищаем все галочки перед установкой новых
+                        $('.dvCheckbox').prop('checked', false);
+
+                        var devicesList = data.devices.join(';');
+
+                        // Разделяем строку на массив устройств
+                        var devicesArray = devicesList.split(';').map(function (device) {
+                            return device.trim(); // Убираем лишние пробелы
+                        });
+
+                        // Перебираем устройства и устанавливаем галочки для соответствующих чекбоксов
+                        devicesArray.forEach(function (deviceName) {
+                            // Находим чекбокс по имени устройства
+                            var checkbox = $('.EdvCheckbox[data-device-name="' + deviceName + '"]');
+
+                            // Проверяем, найден ли чекбокс, и устанавливаем галочку, если он найден
+                            if (checkbox.length > 0) {
+                                checkbox.prop('checked', true);
+
+                                // Проверяем, если выбранное устройство - "АРЕНДА", то показываем скрытые поля
+                                if (deviceName === 'АРЕНДА') {
+                                    $('#ErentFields').show();
+                                    $('#EprepaymentAmountInput').val(data.prepayment_amount);
+                                    $('#EprepaymentMethodSelect').val(data.prepayment_method);
+                                    $('#EprepaymentPlaceSelect').val(data.prepayment_place);
+                                } else {
+                                    $('#ErentFields').hide();
+                                }
+
+                            }
+                        });
+                    }
+
+
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    console.log(error);
+                    alert('Произошла ошибка при получении данных записи. Пожалуйста, повторите позже.');
+                }
+            });
+        });
+    }
+
+
+    $(document).ready(function () {
+
+        // Отслеживаем изменения в поле выбора места
+        $('#EplaceSelect').change(function () {
+            // Получаем выбранное место
+            var selectedPlace = $(this).val();
+
+            // Получаем текущее значение дополнительной информации
+            var currentAdditionalInfo = $('#EadditionalInfoTextarea').val();
+
+            // Обновляем дополнительную информацию, добавляя выбранное место
+            var updatedAdditionalInfo = currentAdditionalInfo + ' ' + selectedPlace + ';';
+
+            // Устанавливаем новое значение дополнительной информации
+            $('#EadditionalInfoTextarea').val(updatedAdditionalInfo);
+        });
+
+
+        // Обработчик изменения состояния чекбоксов устройств
+        $('.EdvCheckbox').change(function () {
+            // Проверяем, есть ли выбранное устройство с именем "АРЕНДА"
+            if ($('.EdvCheckbox[data-device-name="АРЕНДА"]:checked').length > 0) {
+                // Если есть, показываем скрытый блок с арендными полями
+                $('#ErentFields').show();
+            } else {
+                // Если нет, скрываем блок с арендными полями
+                $('#ErentFields').hide();
+            }
+        });
+
+
+        // Добавляем обработчик события изменения состояния всех чекбоксов
+        $('.btn-group-toggle input[type="checkbox"]').change(function () {
+            // Получаем значение состояния текущего чекбокса
+            var checkboxChecked = $(this).is(':checked');
+
+            // Получаем текст, написанный на самом чекбоксе
+            var checkboxText = $(this).parent().text().trim();
+
+
+            console.log(checkboxText);
+
+            if (checkboxText !== "Аренда") {
+                // Получаем текущее содержимое дополнительной информации
+                var additionalInfo = $('#EadditionalInfoTextarea').val();
+
+                // Проверяем состояние чекбокса и обновляем дополнительную информацию
+                if (checkboxChecked) {
+                    // Если чекбокс отмечен, добавляем его текст в дополнительную информацию
+                    additionalInfo += checkboxText.toUpperCase() + "; ";
+                } else {
+                    // Если чекбокс не отмечен, убираем его текст из дополнительной информации
+                    additionalInfo = additionalInfo.replace(checkboxText.toUpperCase() + "; ", "");
+                }
+
+                // Обновляем содержимое дополнительной информации
+                $('#EadditionalInfoTextarea').val(additionalInfo);
+            }
+        });
+
+
+        // Добавляем обработчик события изменения суммы предоплаты
+        $('#EprepaymentAmountInput').change(function () {
+            // Получаем значение суммы предоплаты
+            var EprepaymentAmount = $(this).val();
+            console.log(EprepaymentAmount);
+
+            // Получаем текущее содержимое дополнительной информации
+            var EadditionalInfo = $('#EadditionalInfoTextarea').val();
+
+            // Проверяем наличие суммы предоплаты и обновляем дополнительную информацию
+            if (EprepaymentAmount) {
+                EadditionalInfo += "ПОА:" + EprepaymentAmount + "р; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#EadditionalInfoTextarea').val(EadditionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#EprepaymentMethodSelect').change(function () {
+
+            // Получаем значение способа предоплаты
+            var prepaymentMethod = $(this).val();
+
+
+            var additionalInfo = $('#EadditionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentMethod) {
+                additionalInfo += "Р:" + prepaymentMethod + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#EadditionalInfoTextarea').val(additionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#EprepaymentPlaceSelect').change(function () {
+            // Получаем значение места предоплаты
+            var prepaymentPlace = $('#EprepaymentPlaceSelect').val();
+
+            var additionalInfo = $('#EadditionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentPlace) {
+                additionalInfo += "Г:" + prepaymentPlace + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#EadditionalInfoTextarea').val(additionalInfo);
+        });
+
+        // Обработчик нажатия кнопки "Изменить"
+        $('#EsaveRecordBtn').click(function () {
+            var noteId = $('#editRecordIdLabel').text().replace('Редактирование записи с ID: ', '');
+            var clubName = '{{ club_name }}';
+            var activeAdminValue = getCookie('activeAdmin');
+
+
+            selectedDevices = [];
+
+            // Собираем данные из формы редактирования
+            $(".EdvCheckbox:checked").each(function () {
+                var deviceId = $(this).val();
+                var deviceName = $(this).data("device-name");
+
+                selectedDevices.push({
+                    id: deviceId,
+                    name: deviceName
+                });
+            });
+
+            console.log(selectedDevices);
+
+
+            var deviceNames = selectedDevices.map(function (device) {
+                return device.name;
+            });
+
+
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'club_name': clubName,
+                'date': $('#EdateInput').val(),
+                'time_from': $('#EtimeFromInput').val(),
+                'time_to': $('#EtimeToInput').val(),
+                'devices': deviceNames.join('; '),
+                'attendees_count': $('#EattendeesInput').val(),
+                'full_name': $('#EnameInput').val(),
+                'phone_number': $('#EphoneNumberInput').val(),
+                'additional_info': $('#EadditionalInfoTextarea').val(),
+                'where_select': $('#EWhereSelect').val(),
+                'activeAdmin': activeAdminValue,
+            };
+
+            // Отправляем AJAX-запрос на сервер
+            $.ajax({
+                type: 'POST',
+                url: '/update_record/' + noteId + '/',  // Замените 'update_record' на ваш URL-шаблон обновления записи
+                data: data,
+                success: function (response) {
+                    // Обработка успешного запроса
+                    $('#editRecordModal').modal('hide'); // Закрываем модальное окно после успешного обновления
+                    location.reload()
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    if (xhr.status === 400) {
+
+                        // Ваш сервер вернул ошибку 400 (Bad Request)
+                        alert('Обнаружена плюшка: ' + xhr.responseText);
+
+                    } else {
+                        // Другие ошибки
+                        console.log(error);
+
+                        alert('Сначала выберите администратора');
+                    }
+                }
+            });
+        });
+
+    });
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // Кнопка удаления / ушли
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // Кнопка ушли
+    function handleLeaveClick(noteId) {
+        $('#confirmationModalDelete').modal('show');
+
+        $('#confirmLeaveBtn').on('click', function () {
+            $('#confirmationModalDelete').modal('hide');
+
+            var clubName = '{{ club_name }}';
+            var activeAdminValue = getCookie('activeAdmin');
+
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'noteId': noteId,
+                'clubName': clubName,
+                'activeAdmin': activeAdminValue,
+                'mode': "УШЛИ",
+            };
+
+
+            // Отправляем AJAX-запрос
+            $.ajax({
+                type: 'POST',
+                url: '/delete_record/',
+                data: data,
+                success: function (response) {
+                    updateDataFlag = true;
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    if (xhr.status === 400) {
+                        // Ваш сервер вернул ошибку 400 (Bad Request)
+                        alert('Обнаружена программная плюшка: ' + xhr.responseText);
+
+                    } else {
+                        // Другие ошибки
+                        console.log(error);
+                        alert('Сначала выберите администратора');
+                    }
+                }
+            });
+        });
+    }
+
+
+    // Кнопка отмены удаление без статистики
+    function handleExitClick(noteId) {
+        $('#confirmationModalExit').modal('show');
+
+        $('#confirmExitBtn').on('click', function () {
+            $('#confirmationModalExit').modal('hide');
+
+            var clubName = '{{ club_name }}';
+            var activeAdminValue = getCookie('activeAdmin');
+
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'noteId': noteId,
+                'clubName': clubName,
+                'activeAdmin': activeAdminValue,
+                'mode': "ОТМЕНА",
+            };
+
+
+            // Отправляем AJAX-запрос
+            $.ajax({
+                type: 'POST',
+                url: '/delete_record/',
+                data: data,
+                success: function (response) {
+                    updateDataFlag = true;
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    if (xhr.status === 400) {
+                        // Ваш сервер вернул ошибку 400 (Bad Request)
+                        alert('Обнаружена программная плюшка: ' + xhr.responseText);
+
+                    } else {
+                        // Другие ошибки
+                        console.log(error);
+                        alert('Сначала выберите администратора');
+                    }
+                }
+            });
+        });
+
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    //функция сохранения важной инфомрации
+    function saveWarningInfoSelection() {
+        var saveWIBtn = $('#warningInfoModal').find('.btn-primary');
+        saveWIBtn.prop('disabled', true); // отключаем кнопку
+        var newText = document.getElementById('warningInfoTextarea').value;
+        var clubName = '{{ club_name }}';
+
+        // Создаем объект с данными для отправки
+        var data = {
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'newText': newText,
+            'clubName': clubName,
+        };
+
+
+        // Отправляем AJAX-запрос
+        $.ajax({
+            type: 'POST',
+            url: '/save_warning_info/',
+            data: data,
+            success: function (response) {
+                updateDataFlag = true;
+                saveWIBtn.prop('disabled', false);
+                $('#warningInfoModal').modal('hide');
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                // Обработка ошибок
+                if (xhr.status === 400) {
+                    saveWIBtn.prop('disabled', false);
+                    // Ваш сервер вернул ошибку 400 (Bad Request)
+                    alert('Обнаружена программная плюшка: ' + xhr.responseText);
+
+                } else {
+                    // Другие ошибки
+                    console.log(error);
+                    saveWIBtn.prop('disabled', false);
+                    alert('Произошла ошибка. Пожалуйста, повторите позже.');
+                }
+            }
+        });
+
+
+    }
+
+
+    // Кнопка  переноса
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    function handleTransferClick(noteId) {
+        $('#confirmationModalTransfer').modal('show');
+
+
+        $('#confirmTransferBtn').on('click', function () {
+
+
+            $('#confirmationModalTransfer').modal('hide');
+            var selectedClub = $('#clubSelect').val();
+            var clubName = '{{ club_name }}';
+            var activeAdminValue = getCookie('activeAdmin');
+
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'noteId': noteId,
+                'clubName': clubName,
+                'selectedClub': selectedClub,
+                'activeAdmin': activeAdminValue,
+                'mode': "ПЕРЕНОС",
+            };
+
+
+            // Отправляем AJAX-запрос
+            $.ajax({
+                type: 'POST',
+                url: '/transfer_record/',
+                data: data,
+                success: function (response) {
+                    updateDataFlag = true;
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    // Обработка ошибок
+                    if (xhr.status === 400) {
+                        // Ваш сервер вернул ошибку 400 (Bad Request)
+                        alert('Обнаружена программная плюшка: ' + xhr.responseText);
+
+                    } else {
+                        // Другие ошибки
+                        console.log(error);
+                        alert('Сначала выберите администратора');
+                    }
+                }
+            });
+        });
+    }
+
+
+    // Кнопка добавления
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    $(document).ready(function () {
+
+        // Обработчик изменения значения в выпадающем списке
+        $('#WhereSelect').change(function () {
+            var selectedOption = $(this).val();
+            var additionalInfoTextarea = $('#additionalInfoTextarea');
+            var currentText = additionalInfoTextarea.val();
+
+            // Если выбран вариант "БЕЗ ЗАПИСИ", добавляем соответствующую информацию
+            if (selectedOption === 'БЕЗ ЗАПИСИ') {
+                additionalInfoTextarea.val(currentText + ' БЕЗ ЗАПИСИ');
+            }
+        });
+
+        // Отслеживаем изменения в поле выбора места
+        $('#placeSelect').change(function () {
+            // Получаем выбранное место
+            var selectedPlace = $(this).val();
+
+            // Получаем текущее значение дополнительной информации
+            var currentAdditionalInfo = $('#additionalInfoTextarea').val();
+
+            // Обновляем дополнительную информацию, добавляя выбранное место
+            var updatedAdditionalInfo = currentAdditionalInfo + ' ' + selectedPlace + ';';
+
+            // Устанавливаем новое значение дополнительной информации
+            $('#additionalInfoTextarea').val(updatedAdditionalInfo);
+        });
+
+        // Добавляем обработчик клика на кнопку "Добавить запись"
+        $('#openAddRecordModalBtn').on('click', function () {
+            // Открываем модальное окно
+            $('#addRecordModal').modal('show');
+        });
+
+
+        // Обработчик изменения состояния чекбоксов устройств
+        $('.dvCheckbox').change(function () {
+            // Проверяем, выбрано ли устройство с именем "АРЕНДА"
+            if ($('input[name="dvCheckbox"]:checked').data('device-name') === 'АРЕНДА') {
+                // Показываем блок полей аренды
+                $('#rentFields').show();
+            } else {
+                // Скрываем блок полей аренды
+                $('#rentFields').hide();
+            }
+        });
+
+    });
+
+
+    // Функция для получения значения из куки по имени
+    function getCookieActiveAdmin(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+
+        if (parts.length == 2) {
+            return parts.pop().split(";").shift();
+        }
+
+        return null;
+    }
+
+
+    // внос в доп инфу чекбоксов и поа
+    $(document).ready(function () {
+
+        // Добавляем обработчик события изменения состояния всех чекбоксов
+        $('.btn-group-toggle input[type="checkbox"]').change(function () {
+            // Получаем значение состояния текущего чекбокса
+            var checkboxChecked = $(this).is(':checked');
+
+            // Получаем текст, написанный на самом чекбоксе
+            var checkboxText = $(this).parent().text().trim();
+
+
+            console.log(checkboxText);
+
+            if (checkboxText !== "Аренда") {
+                // Получаем текущее содержимое дополнительной информации
+                var additionalInfo = $('#additionalInfoTextarea').val();
+
+                // Проверяем состояние чекбокса и обновляем дополнительную информацию
+                if (checkboxChecked) {
+                    // Если чекбокс отмечен, добавляем его текст в дополнительную информацию
+                    additionalInfo += checkboxText.toUpperCase() + "; ";
+                } else {
+                    // Если чекбокс не отмечен, убираем его текст из дополнительной информации
+                    additionalInfo = additionalInfo.replace(checkboxText.toUpperCase() + "; ", "");
+                }
+
+                // Обновляем содержимое дополнительной информации
+                $('#additionalInfoTextarea').val(additionalInfo);
+            }
+
+        });
+
+        // Добавляем обработчик события изменения суммы предоплаты
+        $('#prepaymentAmountInput').change(function () {
+            // Получаем значение суммы предоплаты
+            var prepaymentAmount = $(this).val();
+
+            // Получаем текущее содержимое дополнительной информации
+            var additionalInfo = $('#additionalInfoTextarea').val();
+
+            // Проверяем наличие суммы предоплаты и обновляем дополнительную информацию
+            if (prepaymentAmount) {
+                additionalInfo += "ПОА:" + prepaymentAmount + "р; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#additionalInfoTextarea').val(additionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#prepaymentMethodSelect').change(function () {
+
+            // Получаем значение способа предоплаты
+            var prepaymentMethod = $(this).val();
+
+
+            var additionalInfo = $('#additionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentMethod) {
+                additionalInfo += "Р:" + prepaymentMethod + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#additionalInfoTextarea').val(additionalInfo);
+        });
+
+
+        // Добавляем обработчик события типа оплаты
+        $('#prepaymentPlaceSelect').change(function () {
+            // Получаем значение места предоплаты
+            var prepaymentPlace = $('#prepaymentPlaceSelect').val();
+
+            var additionalInfo = $('#additionalInfoTextarea').val();
+
+            // Добавляем информацию о предоплате, если она указана
+            if (prepaymentPlace) {
+                additionalInfo += "Г:" + prepaymentPlace + "; ";
+            }
+
+            // Обновляем содержимое дополнительной информации
+            $('#additionalInfoTextarea').val(additionalInfo);
+        });
+
+
+    });
+
+    // Инициализация модального окна
+    $('#addRecordModal').on('show.bs.modal', function (event) {
+        // Проверяем наличие активного админа из куки
+        var activeAdmin = getCookieActiveAdmin('activeAdmin');
+
+        if (!activeAdmin) {
+            location.reload();
+            // Если активного админа нет, выводим алерт и предотвращаем открытие модального окна
+            alert('Выберите админа!');
+            $(this).unbind('show.bs.modal'); // Удаляем обработчик события
+            event.preventDefault();
+        }
+
+        // Устанавливаем флаг в false при открытии модального окна
+        updateDataFlag = false;
+
+
+        var modal = $(this);
+        var today = new Date().toISOString().split('T')[0];
+        var currentTime = new Date();
+        var hours = currentTime.getHours();
+        var minutes = currentTime.getMinutes();
+        var formattedTime = (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+        modal.find('#timeFromInput').val(formattedTime);
+
+
+        // МАСКА К НОМЕРУ
+        $('.phone-mask').inputmask('8 (999) 999-99-99', {"placeholder": "_"});
+
+        // Установка начальной даты сегодняшней
+        modal.find('#dateInput').val(today);
+
+    });
+
+
+    //запись в бд
+    $('#saveRecordBtn').click(function () {
+
+        var saveRecordBtn = $(this); // Сохраняем ссылку на кнопку
+
+        saveRecordBtn.prop('disabled', true);
+
+        var clubName = '{{ club_name }}';
+        var clubID = '{{ CID }}'
+
+
+        // Отладочная информация
+        var selectedDevices = $('.dvCheckbox:checked').map(function () {
+            return $(this).data('device-name');
+        }).get();
+
+        // Получаем значение из куки 'activeAdmin'
+        var activeAdminValue = getCookie('activeAdmin');
+
+
+        // Создаем объект с данными для отправки
+        var data = {
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'date': $('#dateInput').val(),
+            'time_from': $('#timeFromInput').val(),
+            'time_to': $('#timeToInput').val(),
+            'devices': selectedDevices.join('; '),
+            'rent_checkbox': isChecked,
+            'attendees_count': $('#attendeesInput').val(),
+            'full_name': $('#nameInput').val(),
+            'phone_number': $('#phoneNumberInput').val(),
+            'additional_info': $('#additionalInfoTextarea').val(),
+            'clubId': clubID,
+            'where_select': $('#WhereSelect').val(),
+            'activeAdmin': activeAdminValue,
+            'clubName': clubName,
+        };
+
+
+        // Отправляем AJAX-запрос
+        $.ajax({
+            type: 'POST',
+            url: '/save_record/',
+            data: data,
+            success: function (response) {
+                updateDataFlag = true;
+                updateNotesData();
+
+                saveRecordBtn.prop('disabled', false);
+                $('#addRecordModal').modal('hide'); // Используйте modal('hide') для закрытия модального окна
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                // Обработка ошибок
+                if (xhr.status === 400) {
+                    saveRecordBtn.prop('disabled', false);
+                    // Ваш сервер вернул ошибку 400 (Bad Request)
+                    alert('Обнаружена плюшка: ' + xhr.responseText);
+
+                } else {
+                    // Другие ошибки
+                    console.log(error);
+                    saveRecordBtn.prop('disabled', false);
+                    alert('Выберите администратора');
+                }
+            }
+        });
+
+
+    });
+
+    $('#clearAdditionalInfoBtnAdd').click(function () {
+        $('#additionalInfoTextarea').val(''); // Очищаем поле
+    });
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // Обновление данных показ таблицы
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    function openPhoneNumberModal(phoneNumber) {
+        // Выполняем GET-запрос к серверу для получения данных по номеру телефона
+        $.ajax({
+            url: '/get_phone_number_data/',  // Замените на ваш реальный URL-адрес серверного эндпоинта
+            type: 'GET',
+            data: {phoneNumber: phoneNumber},  // Передаем номер телефона как параметр запроса
+            dataType: 'json',
+            success: function (data) {
+                // Обработка успешного ответа
+                if (data && data.status === 'success') {
+                    // Проверяем, что guest_tab_data является массивом и содержит элементы
+                    if (Array.isArray(data.guest_tab_data) && data.guest_tab_data.length > 0) {
+                        // Выводим информацию о первом элементе массива
+
+                        $('#guest_surname').text("Фамилия: " + data.guest_tab_data[1]);
+                        $('#guest_name').text("Имя: " + data.guest_tab_data[2]);
+                        $('#guest_phone').text("Номер: " + data.guest_tab_data[3]);
+                        $('#guest_dt').text("Дата рождения: " + data.guest_tab_data[4]);
+                        $('#guest_tmb').text("Таймбек: " + data.guest_tab_data[6]);
+                        $('#guest_stp').text("Дата начала подписки: " + data.guest_tab_data[17]);
+                        $('#guest_bon').text("Бонусы: " + data.guest_tab_data[19]);
+                        $('#guest_dop').text("Доп.информация: " + data.guest_tab_data[11]);
+                    } else {
+                        $('#guest_surname').text("Номер не найден");
+                        $('#guest_name').text("");
+                        $('#guest_phone').text("");
+                        $('#guest_dt').text("");
+                        $('#guest_tmb').text("");
+                        $('#guest_stp').text("");
+                        $('#guest_bon').text("");
+                        $('#guest_dop').text("");
+                    }
+
+                    // Открываем модальное окно
+                    $('#phoneNumberModal').modal('show');
+                } else {
+                    console.error('Error in receiving phone number data:', data);
+                }
+            },
+            error: function (error) {
+                // Обработка ошибки запроса
+                console.error('Ошибка GET-запроса: ', error);
+            }
+        });
+    }
+
+
+    function updateNotesData() {
+        if (menuOpenFlag) {
+            return;
+        }
+
+        if (updateDataFlag) {
+            var clubName = '{{ club_name }}';
+            var clubId = '{{ CID }}';
+            var url = '{% url "get_notes_data" club_id="0" %}'.replace('0', clubId);
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    var tableBody = $('#notesTable tbody');
+                    tableBody.empty();
+
+                    var hasTodayNotes = false;
+
+                    if (data.notes_data && data.notes_data.length > 0) {
+                        var currentDate = '';  // Для отслеживания текущей даты
+
+                        data.notes_data.forEach(function (notes) {
+                            var formattedDate = formatDate(notes.date);
+
+                            if (formattedDate === formatDate(new Date())) {
+                                hasTodayNotes = true;
+                            } else if (hasTodayNotes === false) {
+                                tableBody.append('<tr><td colspan="9" class="no-records">Записей на сегодня нет</td></tr>');
+                                hasTodayNotes = true;
+                            }
+
+
+                            if ((formattedDate !== currentDate)) {
+                                // Добавляем новую строку с датой и днем недели во второй столбец
+                                tableBody.append('<tr class="date-row"><td class="bold">' + formattedDate + '</td><td class="bold"  >' + getDayOfWeek(notes.date) + '</td>' +
+                                    '<td></td>' +
+                                    '<td></td>' +
+                                    '<td></td>' +
+                                    '<td style="min-width: 100px;"></td>' +
+                                    '<td></td>' +
+                                    '<td></td>' +
+
+                                    '</tr>');
+                                currentDate = formattedDate;  // Обновляем текущую дату
+
+                            }
+
+
+                            // Добавляем данные записи
+                            var additionalInfoCell = '<td>' + notes.additional_info + '</td>';
+                            var full_name_InfoCell = '<td style="width: 5px;">' + notes.full_name + '</td>';
+
+                            // Проверяем символы в дополнительной информации и устанавливаем цвет
+                            if (notes.additional_info.includes('{С}')) {
+                                full_name_InfoCell = '<td style="background-color: #add8e6; width: 5px;">' + notes.full_name + '</td>'; // Голубой
+                            } else if (notes.additional_info.includes('{З}')) {
+                                full_name_InfoCell = '<td style="background-color: #90ee90; width: 5px;">' + notes.full_name + '</td>'; // Зеленый
+                            } else if (notes.additional_info.includes('{К}')) {
+                                full_name_InfoCell = '<td style="background-color: #ffcccc;width: 5px; ">' + notes.full_name + '</td>'; // Светло-красный
+                            } else if (notes.additional_info.includes('{Ж}')) {
+                                full_name_InfoCell = '<td style="background-color: #ffff99;width: 5px;">' + notes.full_name + '</td>'; // Желтый
+                            } else if (notes.additional_info.includes('{Ф}')) {
+                                full_name_InfoCell = '<td style="background-color: #dabbed; width: 5px;">' + notes.full_name + '</td>'; // Фиолетовый
+                            }
+
+
+                            // Проверяем, если в устройствах стоит "АРЕНДА" и в дополнительной информации нет "ПОА"
+                            if (notes.devices.includes('АРЕНДА')) {
+                                dev = '<td style="background-color: #c3e6cb">' + notes.devices + '</td>';
+
+                                // Проверяем, если в дополнительной информации нет хотя бы одного элемента из списка
+                                if (!['ВК', 'ВТ', 'ТГ', 'ВБ', 'ЧЕК', 'ПДА', 'СМС'].some(device => notes.additional_info.includes(device))) {
+                                    additionalInfoCell = '<td style="background-color: rgb(243,212,162);">' + notes.additional_info + '</td>'; // Оранжевый цвет
+                                }
+
+                                // Если в дополнительной информации нет "ПОА", подсвечиваем красным
+                                if (!notes.additional_info || !notes.additional_info.includes('ПОА')) {
+                                    additionalInfoCell = '<td style="background-color: rgba(246,162,162,0.87);">' + notes.additional_info + '</td>'; // Красный цвет
+                                }
+
+
+                            } else {
+                                dev = '<td>' + notes.devices + '</td>';
+                            }
+
+
+                            // Проверяем, если в устройствах стоит "АРЕНДА" и в дополнительной информации нет "ПОА"
+                            if (notes.devices.includes('СОБРАНИЕ')) {
+                                additionalInfoCell = '<td style="background-color: rgba(246,162,162,0.87);">' + notes.additional_info + '</td>'; // Красный цвет
+                                full_name_InfoCell = '<td style="background-color: #ffcccc;">' + notes.full_name + '</td>'; // Светло-красный
+                            }
+
+
+                            // Получите номер телефона без нечисловых символов
+                            var phoneNumberDigits = notes.phone_number.replace(/\D/g, '');
+
+                            var fpn = '';
+                            if (notes.phone_number == "БЕЗ НОМЕРА") {
+                                fpn = '<td style="min-width: 100px;">' + notes.phone_number + '</td>';
+                            } else {
+                                var textColorStyle = phoneNumberDigits.length < 11 ? 'color: red;' : '';
+                                var formattedPhoneNumber = phoneNumberDigits.slice(0, -4) + '<strong>' + phoneNumberDigits.slice(-4) + '</strong>';
+                                // Замените строку с номером телефона на ссылку с вызовом функции открытия модального окна
+                                fpn = '<td style="min-width: 100px; cursor: pointer;' + textColorStyle + '" onclick="openPhoneNumberModal(\'' + notes.phone_number + '\')">' + formattedPhoneNumber + '</td>';
+                            }
+
+
+                            // Добавляем данные записи
+                            tableBody.append('<tr data-note-id="' + notes.id + '">' +
+                                '<td class="' + (notes.time_from && notes.time_to ? 'bold' : '') + '">' + formatTimeWithoutSeconds(notes.time_from) + '</td>' +
+                                '<td class="' + (notes.time_from && notes.time_to ? 'bold' : '') + '">' + formatTimeWithoutSeconds(notes.time_to) + '</td>' +
+                                dev +
+                                '<td >' + notes.attendees_count + '</td>' +
+                                full_name_InfoCell +
+                                fpn +
+                                additionalInfoCell +
+                                '<td class="dropdown-container dropdown-menu-right">' +
+                                '<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border: 0;">⚙️</button>' +
+                                '<div class="dropdown-menu dropdown-menu-left" aria-labelledby="dropdownMenuButton" style="margin-right: 0;">' +
+                                '<a class="dropdown-item" href="#" onclick="handleLeaveClick(' + notes.id + ')">Ушли</a>' +
+                                '<a class="dropdown-item" href="#" onclick="handleEDITClick(' + notes.id + ')">Редактировать</a>' +
+                                '<a class="dropdown-item" href="#" onclick="handleExitClick(' + notes.id + ')">Отмена записи</a>' +
+                                '<a class="dropdown-item" href="#" onclick="handleSeparationClick(' + notes.id + ')">Разделение записи</a>' +
+                                '<a class="dropdown-item" href="#" onclick="handleTransferClick(' + notes.id + ')">Перенос записи</a>' +
+                                '</div>' +
+                                '</td>' +
+                                '</tr>'
+                            )
+                            ;
+
+
+                        });
+                    } else {
+                        console.log('Нет данных для отображения');
+                    }
+
+                },
+                error: function (error) {
+                    console.error('Ошибка загрузки таблицы клуба', error);
+                }
+            });
+        }
+    }
+
+    function formatTimeWithoutSeconds(timeWithSeconds) {
+        if (!timeWithSeconds) {
+            return "";
+        }
+
+        var timeArray = timeWithSeconds.split(":");
+        return timeArray[0] + ":" + timeArray[1];
+    }
+
+
+    // Таймер на нахождение в меню
+    $(document).on('click', '.btn-secondary#dropdownMenuButton', function () {
+        // Ваш код обработки нажатия на кнопку
+        //console.log("Кнопка нажата");
+
+        // Устанавливаем флаг в true, чтобы указать, что меню открыто
+        menuOpenFlag = true;
+
+        // Устанавливаем таймер на 10 секунд
+        setTimeout(function () {
+            // По истечении 10 секунд устанавливаем флаг в false
+            menuOpenFlag = false;
+            //console.log("Прошло 10 секунд. Меню закрыто.");
+        }, 10000); // 10000 миллисекунд = 10 секунд
+    });
+
+
+    function getDayOfWeek(date) {
+        var daysOfWeek = ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'];
+        var dayIndex = new Date(date).getDay();
+        return daysOfWeek[dayIndex];
+    }
+
+    // Функция для форматирования даты в нужный формат
+    function formatDate(inputDate) {
+        var date = new Date(inputDate);
+        var day = date.getDate();
+        var month = date.getMonth() + 1; // Месяцы начинаются с 0
+        var year = date.getFullYear();
+
+        return day + '.' + month + '.' + year;
+    }
+
+
+    // Обработчик события закрытия модального окна
+    $('#addRecordModal').on('hidden.bs.modal', function (event) {
+        // Устанавливаем флаг в true при закрытии модального окна
+        updateDataFlag = true;
+        updateNotesData();
+    });
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // ШАПКА | Переход на другие страницы клубов
+    function changeClubAndReload(clubName) {
+        var expirationDate = new Date();
+        expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        var expires = "expires=" + expirationDate.toUTCString();
+
+        document.cookie = "clubName=" + encodeURIComponent(clubName) + "; " + expires + "; path=/";
+        //document.cookie = "clubName=" + clubName + "; path=/";
+        location.reload();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // ВЫБОР АДМИНОВ
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    //ВЫБОР АДМИНОВ | Для корректного клика
+    function toggleCheckbox(container) {
+        // Находим чекбокс внутри контейнера
+        var checkbox = $(container).find('.custom-control-input');
+        // Инвертируем состояние чекбокса
+        checkbox.prop('checked', !checkbox.prop('checked'));
+    }
+
+
+    // ВЫБОР АДМИНОВ | Сохранение с модального окна
+    function saveSelection() {
+        // Получаем все отмеченные чекбоксы
+        var checkboxes = document.querySelectorAll('#adminForm input[name="adminCheckbox"]:checked');
+        console.log(checkboxes)
+
+        // Создаем массив для сохранения значений
+        var selectedAdmins = [];
+
+        // Добавляем значения в массив
+        checkboxes.forEach(function (checkbox) {
+            selectedAdmins.push(checkbox.value);
+        });
+
+        // Преобразуем массив в JSON строку и сохраняем в куки
+        document.cookie = "selectedAdmins=" + JSON.stringify(selectedAdmins) + "; path=/";
+
+        // Закрываем модальное окно
+        $('#adminModal').modal('hide');
+
+        // Пересоздаем кнопки админов
+        displaySelectedAdmins();
+        location.reload();
+    }
+
+
+    // ВЫБОР АДМИНОВ | Функция для отображения выбранных администраторов
+    function displaySelectedAdmins() {
+        var selectedAdminsCookie = getCookie("selectedAdmins");
+        var activeAdminCookie = getCookie("activeAdmin");
+        var adminButtonsContainer = document.getElementById("adminButtons");
+
+        // Очищаем текущий контент
+        adminButtonsContainer.innerHTML = "";
+
+        // Если есть выбранные администраторы, добавляем кнопки
+        if (selectedAdminsCookie) {
+            var selectedAdmins = JSON.parse(selectedAdminsCookie);
+            selectedAdmins.forEach(function (adminId) {
+                // Поиск соответствующего администратора в списке
+                var adminCheckbox = document.querySelector('.adminCheckbox[value="' + adminId + '"]');
+
+                // Если администратор найден, добавляем кнопку
+                if (adminCheckbox) {
+                    var adminButton = document.createElement("button");
+                    adminButton.type = "button";
+                    adminButton.className = "btn";
+                    adminButton.style = "border-radius: 0;";
+
+                    // Установка стиля btn-warning для активного админа
+                    if (adminId === activeAdminCookie) {
+                        adminButton.classList.add("btn-warning");
+                    } else {
+                        adminButton.classList.add("btn-outline-warning");
+                    }
+
+                    adminButton.innerHTML = adminCheckbox.getAttribute("data-admin-name"); // Получаем имя из атрибута data-admin-name
+                    adminButton.addEventListener("click", function () {
+                        setActiveAdmin(adminCheckbox, adminButton);
+                    });
+                    adminButtonsContainer.appendChild(adminButton);
+                }
+            });
+        } else {
+            flag_admins = false;
+        }
+    }
+
+
+    // ВЫБОР АДМИНОВ | Функция для установки активного админа
+    function setActiveAdmin(adminCheckbox, adminButton) {
+        // Снимаем выделение с предыдущего активного админа
+        var activeAdminButton = document.querySelector('.btn.btn-warning');
+        if (activeAdminButton) {
+            activeAdminButton.classList.remove("btn", "btn-warning");
+            activeAdminButton.classList.add("btn", "btn-outline-warning");
+        }
+
+        // Выделяем текущего активного админа
+        adminButton.classList.remove("btn", "btn-outline-warning");
+        adminButton.classList.add("btn", "btn-warning");
+
+        // Сохраняем ID активного админа в куки
+        document.cookie = "activeAdmin=" + adminCheckbox.value + "; path=/";
+        flag_admins = true;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+
+    // ОБЩИЕ ФУНКЦИИ | при загрузке страницы
+    window.onload = function () {
+        displaySelectedAdmins();
+        updateNotesData();
+        setInterval(updateNotesData, 3000);
+    };
+
+    // ОБЩИЕ ФУНКЦИИ |  Функция для получения значения куки по имени
+    function getCookie(name) {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                return cookie.substring(name.length + 1);
+            }
+        }
+        return null;
+    }
+
+
+</script>
+
+
+</body>
+</html>

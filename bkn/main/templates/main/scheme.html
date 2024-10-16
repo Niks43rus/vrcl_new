@@ -1,0 +1,275 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Lightbox CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet"/>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap Datepicker JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <!-- Lightbox JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+    <title>Схема клуба</title>
+</head>
+
+<body>
+
+<style>
+    .content-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .image-block {
+        flex: 2;
+        min-width: 300px;
+    }
+
+    .image-block img {
+        width: 100%;
+        height: auto;
+    }
+
+    .text-block {
+        flex: 1;
+        min-width: 300px;
+        padding-left: 20px;
+    }
+
+    .text-block pre {
+        font-family: 'Arial', sans-serif; /* Установлен шрифт Arial */
+        font-size: 15pt;
+        white-space: pre-wrap; /* Перенос текста */
+        word-wrap: break-word; /* Перенос длинных слов */
+        overflow: hidden; /* Отключение скроллинга */
+    }
+
+    .gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .gallery a {
+        flex: 1 1 calc(5%);
+        box-sizing: border-box;
+    }
+
+    .gallery img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+
+</style>
+
+<a href="#" id="SgoBackBtn" class="btn btn-secondary ml-2 mt-2" style="margin-left: 10px;">&lt; Назад</a>
+
+<div class="container mt-3">
+    <h4 style="text-align: center">Клуб {{ club_name }}</h4>
+
+    <div class="content-wrapper">
+        <div class="image-block">
+            {% if club_name == "Киров - Московская 102в/1" %}
+                <a href="{% static 'img/Skhema_Planety.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_Planety.png' %}" alt="Skhema Planety">
+                </a>
+            {% elif club_name == "Киров - Молодой Гвардии 51" %}
+                <a href="{% static 'img/Skhema_MG.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_MG.png' %}" alt="Skhema_MG">
+                </a>
+            {% elif club_name == "Киров - Ленина 91" %}
+                <a href="{% static 'img/Skhema_Lenina_91.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_Lenina_91.png' %}" alt="Skhema Lenina">
+                </a>
+            {% elif club_name == "Киров - Калинина 40" %}
+                <a href="{% static 'img/Skhema_Olimp.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_Olimp.png' %}" alt="Skhema_Olimp">
+                </a>
+            {% elif club_name == "Киров - АРЕНА Уральская 1" %}
+                <a href="{% static 'img/Skhema_UR.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_UR.png' %}" alt="Skhema_UR">
+                </a>
+            {% elif club_name == "Киров - Уральская 1" %}
+                <a href="{% static 'img/Skhema_UR.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/Skhema_UR.png' %}" alt="Skhema_UR">
+                </a>
+            {% elif club_name == "Ижевск - Ленина 18" %}
+                <a href="{% static 'img/skhema_kluba_izhevsk.png' %}" data-lightbox="club-image">
+                    <img src="{% static 'img/skhema_kluba_izhevsk.png' %}" alt="skhema_kluba_izhevsk">
+                </a>
+            {% else %}
+                <p>Схема не найдена для данного клуба</p>
+            {% endif %}
+        </div>
+
+        <div class="text-block">
+            <pre>{{ settings_keys }}</pre>
+        </div>
+    </div>
+
+    <div class="additional-section text-block">
+        <pre>{{ scheme_keys }}</pre>
+    </div>
+
+
+    <div class="additional-section text-block">
+        <h2>Как должна выглядеть игровая зона</h2>
+
+
+        <div class="gallery">
+
+            {% if club_name == "Киров - Московская 102в/1" %}
+
+                <a href="{% static 'img/М102_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/М102_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/М102_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/М102_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+
+            {% elif club_name == "Киров - Молодой Гвардии 51" %}
+
+                <a href="{% static 'img/МГ51_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/МГ51_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/МГ51_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/МГ51_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+
+
+
+            {% elif club_name == "Киров - Ленина 91" %}
+                <a href="{% static 'img/Л91_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/Л91_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/Л91_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/Л91_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+
+            {% elif club_name == "Киров - Калинина 40" %}
+                <a href="{% static 'img/К40_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/К40_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/К40_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/К40_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+
+
+
+            {% elif club_name == "Киров - АРЕНА Уральская 1" %}
+                <a href="{% static 'img/АУ_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/АУ_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/АУ_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/АУ_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+
+
+            {% elif club_name == "Киров - Уральская 1" %}
+                <a href="{% static 'img/У_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/У_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/У_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/У_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+            {% elif club_name == "Ижевск - Ленина 18" %}
+                 <a href="{% static 'img/ИЖ_1.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/ИЖ_1.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+                <a href="{% static 'img/ИЖ_2.jpg' %}" data-lightbox="game-zone-gallery"
+                   data-title="ОПИСАНИЕ">
+                    <img src="{% static 'img/ИЖ_2.jpg' %}" alt="1" class="img-thumbnail">
+                </a>
+
+
+
+
+            {% else %}
+                <p>Схема не найдена для данного клуба</p>
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('SgoBackBtn').addEventListener('click', function () {
+            history.back();
+        });
+    });
+</script>
+
+</body>
+</html>
