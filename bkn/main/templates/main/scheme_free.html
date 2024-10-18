@@ -72,43 +72,61 @@
     {% endfor %}
 </div>
 
-
 <!-- Календарь для Плоек -->
 <div id="calendar-container">
     <div id="calendar"></div>
 </div>
 
 <script>
-     $(document).ready(function () {
-        var deviceName = 'Плойка'; // Default device name
+    $(document).ready(function () {
+        var deviceName = 'Плойка'; // Имя устройства по умолчанию
 
-        // Inline calendar
+        // Инициализация инлайн-календаря
         $('#inline-datepicker').datepicker({
-            dateFormat: "yy-mm-dd",
+            dateFormat: "yy-mm-dd", // Формат даты
             onSelect: function (dateText) {
+                // Переход к выбранной дате в календаре
                 $('#calendar').fullCalendar('gotoDate', dateText);
             },
-            changeMonth: true,
-            changeYear: false,
-            showButtonPanel: false
+            changeMonth: true, // Позволяет изменять месяц
+            changeYear: false, // Запрет на изменение года
+            showButtonPanel: false // Скрыть панель кнопок
         });
 
-        // Initialize the calendar for Плойки
+        // Инициализация календаря для Плоек
         $('#calendar').fullCalendar({
             header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'agendaDay'
+                left: 'prev,next today', // Кнопки для навигации
+                center: 'title', // Заголовок с названием
+                right: 'agendaDay' // Отображение дня
             },
-            defaultView: 'agendaDay',
-            defaultDate: moment().format('YYYY-MM-DD'),
-            events: {{ events|get_item:'Плойка'|safe }}, // Ensure you get all events for Плойки
-            editable: false,
-            timeFormat: 'H:mm',
-            slotLabelFormat: 'H:mm'
+            defaultView: 'agendaDay', // Вид по умолчанию
+            defaultDate: moment().format('YYYY-MM-DD'), // Текущая дата
+            events: {{ events|get_item:'Плойка'|safe }}, // Получение всех событий для Плойки
+            editable: false, // Запрет редактирования
+            timeFormat: 'H:mm', // Формат времени
+            slotLabelFormat: 'H:mm' // Формат меток слотов
         });
 
-        // Show the calendar by default
+         const events = {{ events|safe }}; // Передача событий из Django в JavaScript.
+
+         // Обработчик событий для кнопок устройств
+    $('.device-button').on('click', function () {
+        const deviceName = $(this).data('device'); // Обновление имени устройства в зависимости от нажатой кнопки
+        console.log('Выбранное устройство:', deviceName); // Вывод имени устройства в консоль
+
+        // Очистка текущих событий из календаря
+        $('#calendar').fullCalendar('removeEvents');
+
+        // Фильтрация событий по имени устройства
+        const filteredEvents = events[deviceName] || []; // Получаем события для выбранного устройства
+
+        // Загрузка новых событий для выбранного устройства
+        $('#calendar').fullCalendar('addEventSource', filteredEvents);
+    });
+
+
+        // Отображение календаря по умолчанию
         $('#calendar-container').show();
     });
 </script>
