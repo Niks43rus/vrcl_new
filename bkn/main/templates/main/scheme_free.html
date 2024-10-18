@@ -41,35 +41,76 @@
         }
 
         .fc-title {
-            font-size: 18px;
+            font-size: 20px;
             color: black;
+            font-weight: bold;
         }
 
         .fc-time {
-            font-size: 18px;
+            font-size: 20px !important; /* Увеличьте размер шрифта */
             color: black;
+            font-weight: bold; /* Сделать текст жирным */
         }
 
         .fc-today-button {
             display: none;
         }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .selected {
+            background-color: #28a745 !important; /* Зеленый цвет для выделенной кнопки */
+            border-color: #28a745 !important;
+        }
+
+        .device-button {
+            margin: 10px 0; /* Отступы сверху и снизу для кнопок устройств */
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
+<!-- Шапка с навигацией -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="javascript:history.back()">Назад</a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+            {% for club in clubs %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'scheme_free' club_id=club.id %}">{{ club.name }}</a>
+
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>
+
 <h1 class="text-center mt-4">Дневной календарь - {{ club_name }}</h1>
 <hr>
 
-<!-- Inline календарь -->
-<div id="datepicker-container" class="text-center">
-    <div id="inline-datepicker"></div>
-</div>
-
-<!-- Кнопки для устройств -->
-<div class="text-center mb-3">
-    {% for device in events.keys %}
-        <button class="btn btn-primary device-button" data-device="{{ device }}">{{ device }}</button>
-    {% endfor %}
+<!-- Инлайн-календарь и кнопки для устройств в одном ряду -->
+<div class="container">
+    <div class="row justify-content-center mb-3">
+        <div class="col-md-6 text-center">
+            <div id="inline-datepicker"></div>
+        </div>
+        <div class="col-md-6 text-center">
+            {% for device in events.keys %}
+                <button class="btn btn-primary device-button {% if device == 'Плойка' %}selected{% endif %}" data-device="{{ device }}">{{ device }}</button>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 <!-- Календарь для Плоек -->
@@ -108,23 +149,30 @@
             slotLabelFormat: 'H:mm' // Формат меток слотов
         });
 
-         const events = {{ events|safe }}; // Передача событий из Django в JavaScript.
+        const events = {{ events|safe }}; // Передача событий из Django в JavaScript.
 
-         // Обработчик событий для кнопок устройств
-    $('.device-button').on('click', function () {
-        const deviceName = $(this).data('device'); // Обновление имени устройства в зависимости от нажатой кнопки
-        console.log('Выбранное устройство:', deviceName); // Вывод имени устройства в консоль
+        // Обработчик событий для кнопок устройств
+        $('.device-button').on('click', function () {
+            // Сброс выделения всех кнопок
+            $('.device-button').removeClass('selected');
 
-        // Очистка текущих событий из календаря
-        $('#calendar').fullCalendar('removeEvents');
+            const deviceName = $(this).data('device'); // Обновление имени устройства в зависимости от нажатой кнопки
 
-        // Фильтрация событий по имени устройства
-        const filteredEvents = events[deviceName] || []; // Получаем события для выбранного устройства
+            // Выделение нажатой кнопки
+            $(this).addClass('selected');
 
-        // Загрузка новых событий для выбранного устройства
-        $('#calendar').fullCalendar('addEventSource', filteredEvents);
-    });
+            // Очистка текущих событий из календаря
+            $('#calendar').fullCalendar('removeEvents');
 
+            // Фильтрация событий по имени устройства
+            const filteredEvents = events[deviceName] || []; // Получаем события для выбранного устройства
+
+            // Загрузка новых событий для выбранного устройства
+            $('#calendar').fullCalendar('addEventSource', filteredEvents);
+        });
+
+        // Выделить "Плойка" по умолчанию
+        $('.device-button[data-device="Плойка"]').addClass('selected');
 
         // Отображение календаря по умолчанию
         $('#calendar-container').show();

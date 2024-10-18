@@ -1,9 +1,9 @@
 # main/views.py
 import json
+import re
 import random
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta, date
-
 from .models import *
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
@@ -890,15 +890,46 @@ def scheme(request, club_id):
 
 
 def generate_soft_color():
-    r = random.randint(200, 255)  # Светлые оттенки красного
-    g = random.randint(200, 255)  # Светлые оттенки зеленого
-    b = random.randint(200, 255)  # Светлые оттенки синего
-    return f'#{r:02x}{g:02x}{b:02x}'  # Форматируем в HEX
+    # Генерация случайного цвета с использованием HSL
+    h = random.random()  # Hue: 0-1
+    s = 0.7  # Saturation: 70%
+    l = 0.5  # Lightness: 50%
+    return hsl_to_hex(h, s, l)
 
-import re
+
+def hsl_to_hex(h, s, l):
+    # Конвертация HSL в RGB
+    c = (1 - abs(2 * l - 1)) * s
+    x = c * (1 - abs((h * 6) % 2 - 1))
+    m = l - c / 2
+
+    r, g, b = 0, 0, 0
+
+    if 0 <= h < 1 / 6:
+        r, g, b = c, x, 0
+    elif 1 / 6 <= h < 2 / 6:
+        r, g, b = x, c, 0
+    elif 2 / 6 <= h < 3 / 6:
+        r, g, b = 0, c, x
+    elif 3 / 6 <= h < 4 / 6:
+        r, g, b = 0, x, c
+    elif 4 / 6 <= h < 5 / 6:
+        r, g, b = x, 0, c
+    elif 5 / 6 <= h < 1:
+        r, g, b = c, 0, x
+
+    # Конвертируем в диапазон 0-255 и формируем HEX
+    r = int((r + m) * 255)
+    g = int((g + m) * 255)
+    b = int((b + m) * 255)
+
+    return f'#{r:02x}{g:02x}{b:02x}'  # Форматируем в HEX
 
 def scheme_free(request, club_id):
     if is_authenticated(request):
+        clubs = Club.objects.all()
+        print(clubs)
+
         club = get_object_or_404(Club, id=club_id)
         club_name = club.name
         notes_model = club_models_notes.get(club_name)
@@ -909,7 +940,7 @@ def scheme_free(request, club_id):
         # Отфильтровываем только нужные устройства: "Квесты", "Плойки", "Настолки", "Аренда" и прочее
         filtered_devices = []
         for device in devices:
-            if any(key in device.name for key in ['ПЛОЙКА', 'КВЕСТ', 'НАСТОЛКИ', 'АРЕНДА']) or device.name not in ['ПЛОЙКА', 'КВЕСТ', 'НАСТОЛКИ', 'АРЕНДА']:
+            if any(key in device.name for key in ['ПЛОЙКА', 'КВЕСТ', 'НАСТОЛКИ', 'АРЕНДА']):
                 filtered_devices.append(device)
 
         # Извлекаем заметки
@@ -966,6 +997,7 @@ def scheme_free(request, club_id):
                     'color': generate_soft_color(),
                 })
             else:
+                # Добавляем устройства, которые не являются Плойками, Квестами, Настолками или Арендой
                 if note['devices'] not in device_events:
                     device_events[note['devices']] = []
                 device_events[note['devices']].append({
@@ -975,16 +1007,25 @@ def scheme_free(request, club_id):
                     'color': generate_soft_color(),
                 })
 
-        print("filtered_devices")
-        print(filtered_devices)
-        print("device_events")
-        print(device_events)
+        # Добавляем события "АРЕНДА" во все календари
+        for note in extracted_notes:
+            if 'АРЕНДА' in note['devices']:
+                for key in device_events.keys():
+                    device_events[key].append({
+                        'title': note['devices'],
+                        'start': f"{note['date']}T{note['time_from']}",
+                        'end': f"{note['date']}T{note['time_to']}",
+                        'color': generate_soft_color(),
+                    })
+
         context = {
             'club_id': club_id,
             'club_name': club_name,
             'devices': filtered_devices,
             'events': device_events,
+            'clubs': clubs,
         }
 
         return render(request, 'main/scheme_free.html', context)
+
 
