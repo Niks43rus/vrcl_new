@@ -975,10 +975,14 @@ def scheme_free(request, club_id):
                     'color': generate_soft_color(),
                 })
 
+        print("filtered_devices")
+        print(filtered_devices)
+        print("device_events")
+        print(device_events)
         context = {
             'club_id': club_id,
             'club_name': club_name,
-            'devices': filtered_devices,  # Используем отфильтрованные устройства
+            'devices': filtered_devices,
             'events': device_events,
         }
 
