@@ -889,12 +889,26 @@ def scheme(request, club_id):
         return render(request, 'main/scheme.html', context)
 
 
-def generate_soft_color():
-    # Генерация случайного цвета с использованием HSL
-    h = random.random()  # Hue: 0-1
-    s = 0.7  # Saturation: 70%
-    l = 0.5  # Lightness: 50%
-    return hsl_to_hex(h, s, l)
+def generate_soft_colors():
+    # Предопределённые оттенки H (hue) для 30 различных цветов, равномерно распределённые по спектру
+    hues = [
+        0.0, 0.03, 0.06, 0.1, 0.13, 0.16, 0.2, 0.23, 0.26, 0.3,
+        0.33, 0.36, 0.4, 0.43, 0.46, 0.5, 0.53, 0.56, 0.6, 0.63,
+        0.66, 0.7, 0.73, 0.76, 0.8, 0.83, 0.86, 0.9, 0.93, 0.96
+    ]
+
+    # Варьируем насыщенность и светлоту для разнообразия
+    s_values = [0.7, 0.65, 0.75, 0.8]
+    l_values = [0.5, 0.55, 0.45, 0.6]
+
+    # Возвращаем список HEX цветов, чередуя насыщенность и светлоту
+    colors = []
+    for i, h in enumerate(hues):
+        s = s_values[i % len(s_values)]  # Чередуем насыщенность
+        l = l_values[i % len(l_values)]  # Чередуем светлоту
+        colors.append(hsl_to_hex(h, s, l))
+
+    return colors
 
 
 def hsl_to_hex(h, s, l):
@@ -925,10 +939,10 @@ def hsl_to_hex(h, s, l):
 
     return f'#{r:02x}{g:02x}{b:02x}'  # Форматируем в HEX
 
+# Пример использования в функции scheme_free:
 def scheme_free(request, club_id):
     if is_authenticated(request):
         clubs = Club.objects.all()
-        print(clubs)
 
         club = get_object_or_404(Club, id=club_id)
         club_name = club.name
@@ -937,13 +951,12 @@ def scheme_free(request, club_id):
         notes = notes_model.objects.all()
         devices = devices_model.objects.all()
 
-        # Отфильтровываем только нужные устройства: "Квесты", "Плойки", "Настолки", "Аренда" и прочее
         filtered_devices = []
         for device in devices:
-            if any(key in device.name for key in ['ПЛОЙКА', 'КВЕСТ', 'НАСТОЛКИ', 'АРЕНДА']):
+            # Убираем "АРЕНДА" (полностью заглавными) из списка устройств
+            if any(key in device.name for key in ['ПЛОЙКА', 'КВЕСТ', 'НАСТОЛКИ']) or device.name == 'Аренда':
                 filtered_devices.append(device)
 
-        # Извлекаем заметки
         extracted_notes = []
         for note in notes:
             devices_list = note.devices.split(';')
@@ -955,68 +968,108 @@ def scheme_free(request, club_id):
                     'devices': device.strip(),
                 })
 
-        # Создаем события с названием устройства вместо "Занято"
+        # Получаем сгенерированные цвета
+        colors = generate_soft_colors()
+        color_index = 0
+
         extracted_events = []
         for note in extracted_notes:
             extracted_events.append({
-                'title': note['devices'],  # Выводим название устройства
+                'title': note['devices'],
                 'start': f"{note['date']}T{note['time_from']}",
                 'end': f"{note['date']}T{note['time_to']}",
-                'color': generate_soft_color(),
+                'color': colors[color_index % len(colors)],  # Берём цвет из списка
             })
+            color_index += 1
 
-        # Создаем события для каждого устройства и объединяем Плойки, Квесты, Настолки и Аренды
-        device_events = {'Плойка': [], 'Квест': [], 'Настолки': [], 'Аренда': []}
+        device_events = {'Плойка': [], 'Квест': [], 'Настолки': [], 'Псвр': []}
         for note in extracted_notes:
+            color = colors[color_index % len(colors)]
             if 'ПЛОЙКА' in note['devices']:
                 device_events['Плойка'].append({
                     'title': note['devices'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
-                    'color': generate_soft_color(),
+                    'color': color,
                 })
+
+            elif 'ГИТАР_ХЕРО' in note['devices']:
+                device_events['Плойка'].append({
+                    'title': note['devices'],
+                    'start': f"{note['date']}T{note['time_from']}",
+                    'end': f"{note['date']}T{note['time_to']}",
+                    'color': color,
+                })
+
+            elif 'ДЖАСТ_ДЭНС' in note['devices']:
+                device_events['Плойка'].append({
+                    'title': note['devices'],
+                    'start': f"{note['date']}T{note['time_from']}",
+                    'end': f"{note['date']}T{note['time_to']}",
+                    'color': color,
+                })
+
+            elif 'ДИДЖЕЙ_ХЕРО' in note['devices']:
+                device_events['Плойка'].append({
+                    'title': note['devices'],
+                    'start': f"{note['date']}T{note['time_from']}",
+                    'end': f"{note['date']}T{note['time_to']}",
+                    'color': color,
+                })
+
+            elif 'НИНТЕНДО' in note['devices']:
+                device_events['Плойка'].append({
+                    'title': note['devices'],
+                    'start': f"{note['date']}T{note['time_from']}",
+                    'end': f"{note['date']}T{note['time_to']}",
+                    'color': color,
+                })
+
             elif 'КВЕСТ' in note['devices']:
                 device_events['Квест'].append({
                     'title': note['devices'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
-                    'color': generate_soft_color(),
+                    'color': color,
                 })
             elif 'НАСТОЛКИ' in note['devices']:
                 device_events['Настолки'].append({
                     'title': note['devices'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
-                    'color': generate_soft_color(),
+                    'color': color,
                 })
-            elif 'АРЕНДА' in note['devices']:
-                device_events['Аренда'].append({
+            elif 'ПСВР' in note['devices']:
+                device_events['Псвр'].append({
                     'title': note['devices'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
-                    'color': generate_soft_color(),
+                    'color': color,
                 })
+
             else:
-                # Добавляем устройства, которые не являются Плойками, Квестами, Настолками или Арендой
                 if note['devices'] not in device_events:
                     device_events[note['devices']] = []
                 device_events[note['devices']].append({
                     'title': note['devices'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
-                    'color': generate_soft_color(),
+                    'color': color,
                 })
+            color_index += 1
 
-        # Добавляем события "АРЕНДА" во все календари
+
         for note in extracted_notes:
             if 'АРЕНДА' in note['devices']:
                 for key in device_events.keys():
-                    device_events[key].append({
-                        'title': note['devices'],
-                        'start': f"{note['date']}T{note['time_from']}",
-                        'end': f"{note['date']}T{note['time_to']}",
-                        'color': generate_soft_color(),
-                    })
+                    if key != 'АРЕНДА':
+                        device_events[key].append({
+                            'title': note['devices'],
+                            'start': f"{note['date']}T{note['time_from']}",
+                            'end': f"{note['date']}T{note['time_to']}",
+                            'color': colors[color_index % len(colors)],
+                        })
+                color_index += 1
 
         context = {
             'club_id': club_id,

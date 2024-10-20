@@ -321,16 +321,10 @@
                     {#                    <input style="margin-bottom: 20px;" type="number" id="minutesInput"> Минуты </input>#}
 
                     <br>
-                    <p id="v_bpb"></p>
-                    <p id="v_bpv"></p>
-                    <p id="v_pb"></p>
-                    <p id="v_pV"></p>
-
-                    <p id="a_pb"></p>
-                    <p id="a_pV"></p>
-
-                    <p id="arvPrice"></p>
-                    <p id="arbPrice"></p>
+                    <p id="weekdayPrice">Стоимость буднего дня: 0</p>
+                    <p id="weekendPrice">Стоимость выходного дня: 0</p>
+                    <p id="arvPrice">Аренда выходные: 0</p>
+                    <p id="arbPrice">Аренда будни: 0</p>
 
                 </div>
             </div>
@@ -349,50 +343,62 @@
         //var hours = parseFloat(document.getElementById('hoursInput').value) + parseFloat(document.getElementById('minutesInput').value) / 60;
         var people = parseFloat(document.getElementById('peopleInput').value) || 1;
 
-        // Рассчитываем общую стоимость
-        var v_bpb = hours * 199 * people;
-        var v_bpv = hours * 299 * people;
-        var v_pb = hours * 139 * people;
-        var v_pV = hours * 199 * people;
+        // Рассчитываем стоимость по новым тарифам
+        var weekdayPrice = 0;
+        var weekendPrice = 0;
 
-        //Арены
-        var a_pb = hours * 199 * people;
-        var a_pV = hours * 299 * people;
-
-        // Рассчитываем стоимость аренды
-        var arvPrice;
-        var arbPrice;
-        var cp = 0;
-
-        if (hours === 1) {
-            if (parseInt(people) > 15) {
-                cp = (parseInt(people) - 15) * 100;
+        // Понедельник-Четверг
+        var remainingHours = hours;
+        while (remainingHours > 0) {
+            if (remainingHours >= 3) {
+                weekdayPrice += 600 * people;
+                remainingHours -= 3;
+            } else {
+                weekdayPrice += 300 * remainingHours * people;
+                remainingHours = 0;
             }
-            arvPrice = 2700 + parseInt(cp);
-            arbPrice = 2100 + parseInt(cp);
-        } else {
-            if (parseInt(people) > 15) {
-                cp = (parseInt(people) - 15) * 100;
-            }
-
-            arvPrice = 2700 + (2400 * (parseInt(hours) - 1)) + parseInt(cp);
-            arbPrice = 2100 + (1800 * (parseInt(hours) - 1)) + parseInt(cp);
-
         }
 
-        document.getElementById('v_bpb').innerText = "Будни БЕЗ Подписки: " + v_bpb;
-        document.getElementById('v_bpv').innerText = "Выходной БЕЗ Подписки: " + v_bpv;
-        document.getElementById('v_pb').innerText = "Будни С Подпиской: " + v_pb;
-        document.getElementById('v_pV').innerText = "Выходной С Подпиской: " + v_pV;
+        // Пятница-Воскресенье и праздничные дни
+        remainingHours = hours;
+        while (remainingHours > 0) {
+            if (remainingHours >= 3) {
+                weekendPrice += 750 * people;
+                remainingHours -= 3;
+            } else {
+                weekendPrice += 450 * remainingHours * people;
+                remainingHours = 0;
+            }
+        }
 
+        // Рассчитываем стоимость аренды
+    var arvPrice;
+    var arbPrice;
+    var cp = 0;
 
-        document.getElementById('a_pb').innerText = "Будни арена: " + a_pb;
-        document.getElementById('a_pV').innerText = "Выходной арена: " + a_pV;
+    // Сохраним изначальные значения часов для расчета аренды
+    var originalHours = parseFloat(document.getElementById('hoursInput').value) || 0;
 
+    if (originalHours === 1) {
+        if (parseInt(people) > 15) {
+            cp = (parseInt(people) - 15) * 100;
+        }
+        arvPrice = 3300 + parseInt(cp);
+        arbPrice = 2700 + parseInt(cp);
+    } else {
+        if (parseInt(people) > 15) {
+            cp = (parseInt(people) - 15) * 100;
+        }
 
-        document.getElementById('arvPrice').innerText = "Аренда выходные: " + arvPrice;
-        document.getElementById('arbPrice').innerText = "Аренда будни: " + arbPrice;
+        arvPrice = 3300 + (3000 * (parseInt(originalHours) - 1)) + parseInt(cp);
+        arbPrice = 2700 + (2400 * (parseInt(originalHours) - 1)) + parseInt(cp);
+    }
 
+    // Обновляем значения на странице
+    document.getElementById('weekdayPrice').innerText = "Стоимость буднего дня: " + weekdayPrice;
+    document.getElementById('weekendPrice').innerText = "Стоимость выходного дня: " + weekendPrice;
+    document.getElementById('arvPrice').innerText = "Аренда выходные: " + arvPrice;
+    document.getElementById('arbPrice').innerText = "Аренда будни: " + arbPrice;
 
     }
 
@@ -452,11 +458,6 @@
         });
     });
 </script>
-
-
-
-
-
 
 
 <!-- Модальное окно для добавления записи -->
@@ -676,11 +677,6 @@
         </div>
     </div>
 </div>
-
-
-
-
-
 
 
 <!-- Модальное окно для редактирования записи -->
