@@ -966,6 +966,7 @@ def scheme_free(request, club_id):
                     'time_from': note.time_from.strftime('%H:%M:%S'),
                     'time_to': note.time_to.strftime('%H:%M:%S'),
                     'devices': device.strip(),
+                    'additional_info': str(note.additional_info),
                 })
 
         # Получаем сгенерированные цвета
@@ -974,6 +975,7 @@ def scheme_free(request, club_id):
 
         extracted_events = []
         for note in extracted_notes:
+            print(note)
             extracted_events.append({
                 'title': note['devices'],
                 'start': f"{note['date']}T{note['time_from']}",
@@ -987,7 +989,7 @@ def scheme_free(request, club_id):
             color = colors[color_index % len(colors)]
             if 'ПЛОЙКА' in note['devices']:
                 device_events['Плойка'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -995,7 +997,7 @@ def scheme_free(request, club_id):
 
             elif 'ГИТАР_ХЕРО' in note['devices']:
                 device_events['Плойка'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1003,7 +1005,7 @@ def scheme_free(request, club_id):
 
             elif 'ДЖАСТ_ДЭНС' in note['devices']:
                 device_events['Плойка'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1011,7 +1013,7 @@ def scheme_free(request, club_id):
 
             elif 'ДИДЖЕЙ_ХЕРО' in note['devices']:
                 device_events['Плойка'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1019,7 +1021,7 @@ def scheme_free(request, club_id):
 
             elif 'НИНТЕНДО' in note['devices']:
                 device_events['Плойка'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1027,21 +1029,21 @@ def scheme_free(request, club_id):
 
             elif 'КВЕСТ' in note['devices']:
                 device_events['Квест'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
                 })
             elif 'НАСТОЛКИ' in note['devices']:
                 device_events['Настолки'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
                 })
             elif 'ПСВР' in note['devices']:
                 device_events['Псвр'].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'],
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1051,7 +1053,7 @@ def scheme_free(request, club_id):
                 if note['devices'] not in device_events:
                     device_events[note['devices']] = []
                 device_events[note['devices']].append({
-                    'title': note['devices'],
+                    'title': note['devices'] + "  ||| "+  note['additional_info'] ,
                     'start': f"{note['date']}T{note['time_from']}",
                     'end': f"{note['date']}T{note['time_to']}",
                     'color': color,
@@ -1064,7 +1066,7 @@ def scheme_free(request, club_id):
                 for key in device_events.keys():
                     if key != 'АРЕНДА':
                         device_events[key].append({
-                            'title': note['devices'],
+                            'title': note['devices'] + "  ||| "+  note['additional_info'],
                             'start': f"{note['date']}T{note['time_from']}",
                             'end': f"{note['date']}T{note['time_to']}",
                             'color': colors[color_index % len(colors)],
