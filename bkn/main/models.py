@@ -69,6 +69,30 @@ class WhereInfo(models.Model):
         verbose_name_plural = 'Статистика - Откуда'
 
 
+#Набор игр
+class Games_for_place(models.Model):
+    Name = models.CharField(max_length=250, verbose_name='Название')
+    Alt_name = models.CharField(max_length=250, verbose_name='Альтернативное название')
+
+
+    def __str__(self):
+        return f'{self.Name}'
+
+    class Meta:
+        verbose_name_plural = 'Стек игр'
+
+
+class GamePlace(models.Model):
+    game = models.ForeignKey(Games_for_place, on_delete=models.CASCADE, related_name="game_places", verbose_name="Игра")
+    place = models.CharField(max_length=100, verbose_name="Место")
+    club = models.CharField(max_length=250, verbose_name="Клуб")
+
+    def __str__(self):
+        return f"{self.game.Name} - {self.place} ({self.club})"
+
+    class Meta:
+        verbose_name = "Привязка игры к месту"
+        verbose_name_plural = "Привязки игр к местам"
 
 
 #region Молодой гвардии

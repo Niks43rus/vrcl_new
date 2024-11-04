@@ -1084,3 +1084,38 @@ def scheme_free(request, club_id):
         return render(request, 'main/scheme_free.html', context)
 
 
+
+def edit_games(request, club_id):
+    if is_authenticated(request):
+        club = get_object_or_404(Club, id=club_id)
+        # Сортируем игры по алфавиту
+        games = Games_for_place.objects.all().order_by('Name')
+
+        # Проверка, если нажата кнопка "Добавить игру"
+        if request.method == "POST" and 'add_game' in request.POST:
+            new_game_name = request.POST.get('game_name', '').strip()
+            if new_game_name:  # Проверка, что название не пустое
+                Games_for_place.objects.create(Name=new_game_name)
+                return redirect('edit_games', club_id=club_id)  # Перенаправление на ту же страницу
+
+        context = {
+            'club_id': club_id,
+            'club_name': club.name,
+            'games': games,
+        }
+        return render(request, 'main/edit_games.html', context)
+
+def place_device(request, club_id):
+    if is_authenticated(request):
+        clubs = Club.objects.all()
+        club = get_object_or_404(Club, id=club_id)
+        club_name = club.name
+
+
+        context = {
+            'club_id': club_id,
+            'club_name': club_name,
+            'clubs': clubs,
+        }
+        return render(request, 'main/place_device.html', context)
+

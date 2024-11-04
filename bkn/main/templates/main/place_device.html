@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ club_name }} - Устройства</title>
+    <style>
+        /* Минимальные стили для центрирования и оформления */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            width: 100%;
+            background-color: #333;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .header a.active {
+            text-decoration: underline;
+        }
+        .search-bar {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .search-bar input[type="text"] {
+            width: 50%;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка с навигацией -->
+    <div class="header">
+        <a href="{% url 'place_device' club_id=club_id %}" class="active">Поиск</a>
+        <a href="{% url 'edit_games' club_id=club_id %}">Редактирование игр / устройств</a>
+    </div>
+
+    <!-- Поисковая строка по центру -->
+    <div class="search-bar">
+        <input type="text" placeholder="Введите название устройства или игры">
+    </div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <h1>{{ club_name }} - Управление устройствами</h1>
+        <p>Выберите клуб из списка:</p>
+        <ul>
+            {% for club in clubs %}
+                <li>{{ club.name }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</body>
+</html>

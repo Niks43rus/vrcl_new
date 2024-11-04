@@ -6,6 +6,8 @@ admin.site.register(SettingsSite)
 admin.site.register(Admins)
 admin.site.register(WarningInfo)
 admin.site.register(WhereInfo)
+admin.site.register(Games_for_place)
+admin.site.register(GamePlace)
 
 
 admin.site.register(Note_ms)

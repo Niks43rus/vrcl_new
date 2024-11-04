@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ club_name }} - Редактирование игр</title>
+    <style>
+        /* Минимальные стили для оформления */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            width: 100%;
+            background-color: #333;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .header a.active {
+            text-decoration: underline;
+        }
+        .content {
+            margin-top: 20px;
+            width: 80%;
+        }
+        .add-game-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .add-game-input {
+            padding: 10px;
+            font-size: 16px;
+            flex-grow: 1;
+        }
+        .add-game-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            cursor: pointer;
+        }
+        .game-list {
+            list-style: none;
+            padding: 0;
+        }
+        .game-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .game-item .game-name {
+            flex-grow: 1;
+        }
+        .game-item button {
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            margin: 0 5px;
+        }
+        .game-item button.increment {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка с навигацией -->
+    <div class="header">
+        <a href="{% url 'place_device' club_id=club_id %}">Поиск</a>
+        <a href="{% url 'edit_games' club_id=club_id %}" class="active">Редактирование игр</a>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Форма добавления новой игры -->
+        <form class="add-game-form" method="POST">
+            {% csrf_token %}
+            <input type="text" name="game_name" class="add-game-input" placeholder="Введите название новой игры">
+            <button type="submit" name="add_game" class="add-game-btn">Добавить игру</button>
+        </form>
+
+        <!-- Список игр -->
+        <ul class="game-list">
+            {% for game in games %}
+                <li class="game-item">
+                    <span class="game-name">{{ game.Name }}</span>
+                    <div class="controls">
+                        <button class="decrement">-</button>
+                        <button class="increment">+</button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</body>
+</html>
