@@ -19,6 +19,8 @@ urlpatterns = [
     path('scheme/<str:club_id>/', scheme, name='scheme'),
     path('scheme_free/<str:club_id>/', scheme_free, name='scheme_free'),
     path('place_device/<str:club_id>/', place_device, name='place_device'),
+    path('assign_place/<int:club_id>/<int:game_id>/', assign_place, name='assign_place'),
+    path('edit_games/<int:club_id>/<int:game_id>/update_assignments/', update_assignments, name='update_assignments'),
     path('edit_games/<str:club_id>/', edit_games, name='edit_games'),
 
     path('add_graph_row/<int:club_id>/', add_graph_row, name='add_graph_row'),

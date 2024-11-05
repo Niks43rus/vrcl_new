@@ -4,6 +4,9 @@ import re
 import random
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta, date
+
+from django.views.decorators.http import require_POST
+
 from .models import *
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
@@ -939,7 +942,7 @@ def hsl_to_hex(h, s, l):
 
     return f'#{r:02x}{g:02x}{b:02x}'  # Форматируем в HEX
 
-# Пример использования в функции scheme_free:
+
 def scheme_free(request, club_id):
     if is_authenticated(request):
         clubs = Club.objects.all()
@@ -1085,9 +1088,34 @@ def scheme_free(request, club_id):
 
 
 
+
+# Поиск игр и устройств
+def place_device(request, club_id):
+    if is_authenticated(request):
+        clubs = Club.objects.all()
+        club = get_object_or_404(Club, id=club_id)
+        club_name = club.name
+
+
+        context = {
+            'club_id': club_id,
+            'club_name': club_name,
+            'clubs': clubs,
+        }
+        return render(request, 'main/place_device.html', context)
+
+
+
+
+#добавление игр и назначение устройств
 def edit_games(request, club_id):
     if is_authenticated(request):
         club = get_object_or_404(Club, id=club_id)
+        club_name = club.name
+        place_model = club_models_places.get(str(club_name))
+        places = place_model.objects.all().order_by('place')
+        print(places)
+
         # Сортируем игры по алфавиту
         games = Games_for_place.objects.all().order_by('Name')
 
@@ -1102,20 +1130,49 @@ def edit_games(request, club_id):
             'club_id': club_id,
             'club_name': club.name,
             'games': games,
+            'places': places,  # Добавляем список мест
         }
         return render(request, 'main/edit_games.html', context)
 
-def place_device(request, club_id):
-    if is_authenticated(request):
-        clubs = Club.objects.all()
-        club = get_object_or_404(Club, id=club_id)
-        club_name = club.name
+
+# Обработчик для добавления привязки устройства к игре
+@require_POST
+def assign_place(request, club_id, game_id):
+    selected_places = request.POST.getlist('places')  # Получаем список выбранных устройств
+
+    # Получаем игру, чтобы связать с выбранными устройствами
+    game = Games_for_place.objects.get(id=game_id)
+
+    # Добавляем каждое выбранное место для игры
+    for place in selected_places:
+        GamePlace.objects.create(game=game, place=place, club=club_id)  # Сохраняем привязку в БД
+
+    # После сохранения перенаправляем на страницу редактирования игр
+    return redirect('edit_games', club_id=club_id)
 
 
-        context = {
-            'club_id': club_id,
-            'club_name': club_name,
-            'clubs': clubs,
-        }
-        return render(request, 'main/place_device.html', context)
+#удаление изменение
+@require_POST
+def update_assignments(request, club_id, game_id):
+    selected_places = request.POST.getlist('places')  # Получаем список отмеченных устройств
+    game = get_object_or_404(Games_for_place, id=game_id)
+
+    # Получаем существующие записи для этой игры и клуба
+    existing_assignments = GamePlace.objects.filter(game=game, club=club_id)
+    existing_places = set(existing_assignments.values_list('place', flat=True))
+
+    # Найти устройства для добавления и удаления
+    places_to_add = set(selected_places) - existing_places
+    places_to_remove = existing_places - set(selected_places)
+
+    # Добавляем новые привязки
+    for place in places_to_add:
+        GamePlace.objects.create(game=game, place=place, club=club_id)
+
+    # Удаляем снятые привязки
+    GamePlace.objects.filter(game=game, club=club_id, place__in=places_to_remove).delete()
+
+    # Перенаправление на страницу редактирования игр
+    return redirect('edit_games', club_id=club_id)
+
 

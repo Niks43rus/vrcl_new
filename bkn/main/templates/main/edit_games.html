@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ club_name }} - Редактирование игр</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         /* Минимальные стили для оформления */
         body {
@@ -35,49 +36,6 @@
             margin-top: 20px;
             width: 80%;
         }
-        .add-game-form {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        .add-game-input {
-            padding: 10px;
-            font-size: 16px;
-            flex-grow: 1;
-        }
-        .add-game-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #4CAF50;
-            border: none;
-            cursor: pointer;
-        }
-        .game-list {
-            list-style: none;
-            padding: 0;
-        }
-        .game-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        .game-item .game-name {
-            flex-grow: 1;
-        }
-        .game-item button {
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            margin: 0 5px;
-        }
-        .game-item button.increment {
-            background-color: #4CAF50;
-        }
     </style>
 </head>
 <body>
@@ -90,26 +48,54 @@
 
     <!-- Основной контент -->
     <div class="content">
-        <!-- Форма добавления новой игры -->
-        <form class="add-game-form" method="POST">
-            {% csrf_token %}
-            <input type="text" name="game_name" class="add-game-input" placeholder="Введите название новой игры">
-            <button type="submit" name="add_game" class="add-game-btn">Добавить игру</button>
-        </form>
-
-        <!-- Список игр -->
         <ul class="game-list">
             {% for game in games %}
                 <li class="game-item">
                     <span class="game-name">{{ game.Name }}</span>
                     <div class="controls">
-                        <button class="decrement">-</button>
-                        <button class="increment">+</button>
+                        <!-- Кнопка + для открытия модального окна -->
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#assignModal{{ game.id }}">+</button>
                     </div>
                 </li>
+
+                <!-- Модальное окно для назначения устройств к игре -->
+                <div class="modal fade" id="assignModal{{ game.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ game.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="assignModalLabel{{ game.id }}">Назначить устройства для {{ game.Name }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="{% url 'assign_place' club_id=club_id game_id=game.id %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label>Выберите устройства:</label>
+                                        <div>
+                                            {% for place in places %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="place{{ game.id }}{{ forloop.counter }}" name="places" value="{{ place.place }}">
+                                                    <label class="form-check-label" for="place{{ game.id }}{{ forloop.counter }}">
+                                                        {{ place.place }}
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Назначить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
         </ul>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
