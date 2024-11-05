@@ -1,3 +1,5 @@
+{% load templatetags %}
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,7 +8,6 @@
     <title>{{ club_name }} - Редактирование игр</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* Минимальные стили для оформления */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -24,10 +25,15 @@
             justify-content: center;
             gap: 20px;
         }
-        .header a {
+        .header a, .back-button {
             color: white;
             text-decoration: none;
             font-weight: bold;
+            background-color: #444;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
         .header a.active {
             text-decoration: underline;
@@ -40,25 +46,43 @@
 </head>
 <body>
 
-    <!-- Шапка с навигацией -->
     <div class="header">
+        <button class="back-button" onclick="window.location.href='{% url 'index' %}'">Назад</button> <!-- Кнопка назад на индекс -->
         <a href="{% url 'place_device' club_id=club_id %}">Поиск</a>
         <a href="{% url 'edit_games' club_id=club_id %}" class="active">Редактирование игр</a>
     </div>
+    <br>
+    <h1> {{ club_name }}</h1>
 
-    <!-- Основной контент -->
     <div class="content">
+        <!-- Форма для добавления новой игры -->
+        <div class="mb-4">
+            <h4>Добавить новую игру</h4>
+            <form method="POST" action="{% url 'edit_games' club_id=club_id %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="game_name">Название игры</label>
+                        <input type="text" class="form-control" id="game_name" name="game_name" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="alt_name">Альтернативное название</label>
+                        <input type="text" class="form-control" id="alt_name" name="alt_name">
+                    </div>
+                </div>
+                <button type="submit" name="add_game" class="btn btn-primary">Добавить</button>
+            </form>
+        </div>
+
         <ul class="game-list">
             {% for game in games %}
                 <li class="game-item">
-                    <span class="game-name">{{ game.Name }}</span>
+                    <span class="game-name">{{ game.Name }}{% if game.Alt_name %} ({{ game.Alt_name }}){% endif %}</span>
                     <div class="controls">
-                        <!-- Кнопка + для открытия модального окна -->
-                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#assignModal{{ game.id }}">+</button>
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#assignModal{{ game.id }}">Изменить</button>
                     </div>
                 </li>
 
-                <!-- Модальное окно для назначения устройств к игре -->
                 <div class="modal fade" id="assignModal{{ game.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ game.id }}" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -69,22 +93,21 @@
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form method="POST" action="{% url 'assign_place' club_id=club_id game_id=game.id %}">
+                                <form method="POST" action="{% url 'update_assignments' club_id=club_id game_id=game.id %}">
                                     {% csrf_token %}
                                     <div class="form-group">
                                         <label>Выберите устройства:</label>
                                         <div>
                                             {% for place in places %}
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" id="place{{ game.id }}{{ forloop.counter }}" name="places" value="{{ place.place }}">
-                                                    <label class="form-check-label" for="place{{ game.id }}{{ forloop.counter }}">
-                                                        {{ place.place }}
-                                                    </label>
+                                                    <input class="form-check-input" type="checkbox" id="place{{ game.id }}{{ forloop.counter }}" name="places" value="{{ place.place }}"
+                                                        {% if place.place in game_places|get_item:game.id %}checked{% endif %}>
+                                                    <label class="form-check-label" for="place{{ game.id }}{{ forloop.counter }}">{{ place.place }}</label>
                                                 </div>
                                             {% endfor %}
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Назначить</button>
+                                    <button type="submit" class="btn btn-primary">Изменить</button>
                                 </form>
                             </div>
                         </div>

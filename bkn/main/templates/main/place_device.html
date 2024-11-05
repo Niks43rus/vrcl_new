@@ -23,10 +23,15 @@
             justify-content: center;
             gap: 20px;
         }
-        .header a {
+        .header a, .back-button {
             color: white;
             text-decoration: none;
             font-weight: bold;
+            background-color: #444;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
         .header a.active {
             text-decoration: underline;
@@ -42,31 +47,119 @@
             padding: 10px;
             font-size: 16px;
         }
+        .search-bar button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .back-button {
+            margin-right: 10px;
+        }
+        /* Стили для таблицы */
+        table {
+            margin-top: 20px;
+            width: 80%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
     </style>
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
 
     <!-- Шапка с навигацией -->
     <div class="header">
+        <button class="back-button" onclick="window.location.href='{% url 'index' %}'">Назад</button>
         <a href="{% url 'place_device' club_id=club_id %}" class="active">Поиск</a>
         <a href="{% url 'edit_games' club_id=club_id %}">Редактирование игр / устройств</a>
     </div>
 
     <!-- Поисковая строка по центру -->
     <div class="search-bar">
-        <input type="text" placeholder="Введите название устройства или игры">
+        <input type="text" id="search-input" placeholder="Введите название устройства или игры">
+        <button id="search-button">Поиск</button>
     </div>
 
     <!-- Основной контент -->
     <div class="content">
-        <h1>{{ club_name }} - Управление устройствами</h1>
-        <p>Выберите клуб из списка:</p>
-        <ul>
-            {% for club in clubs %}
-                <li>{{ club.name }}</li>
-            {% endfor %}
-        </ul>
+        <table id="search-results" style="display: none;"> <!-- Здесь будут отображаться результаты поиска -->
+            <thead>
+                <tr>
+                    <th>Клуб</th>
+                    <th>Место</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="no-results" style="display: none;">Нет результатов</div> <!-- Сообщение об отсутствии результатов -->
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Автозаполнение
+            $("#search-input").autocomplete({
+                source: "{% url 'game_search_autocomplete' club_id=club_id %}",
+                minLength: 2,
+            });
+
+            // Обработчик нажатия на кнопку поиска
+            $("#search-button").on("click", function() {
+                performSearch();
+            });
+
+            // Обработчик нажатия клавиши Enter
+            $("#search-input").on("keypress", function(event) {
+                if (event.which === 13) { // Код клавиши Enter
+                    performSearch();
+                }
+            });
+
+            // Функция выполнения поиска
+            function performSearch() {
+                var query = $("#search-input").val();
+                $.ajax({
+                    url: "{% url 'game_place_search' club_id=club_id %}", // URL для поиска связей
+                    data: {
+                        'query': query,
+                    },
+                    success: function(data) {
+                        displayResults(data); // Отобразить результаты
+                    }
+                });
+            }
+
+            // Функция отображения результатов
+            function displayResults(data) {
+                var resultsTableBody = $("#search-results tbody");
+                resultsTableBody.empty(); // Очистить предыдущие результаты
+                $("#search-results").hide(); // Скрыть таблицу
+                $("#no-results").hide(); // Скрыть сообщение
+
+                if (data.length > 0) {
+                    data.forEach(function(item) {
+                        resultsTableBody.append("<tr><td>" + item.club + "</td><td>" + item.place + "</td></tr>");
+                    });
+                    $("#search-results").show(); // Показать таблицу с результатами
+                } else {
+                    $("#no-results").show(); // Показать сообщение об отсутствии результатов
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>

@@ -1105,6 +1105,63 @@ def place_device(request, club_id):
         return render(request, 'main/place_device.html', context)
 
 
+# Обработчик поиска с автозаполнением
+def game_search_autocomplete(request, club_id):
+    query = request.GET.get('term', '')  # Получаем строку запроса
+
+    # Фильтруем игры по имени и альтернативному имени, игнорируя регистр
+    games = Games_for_place.objects.filter(
+        models.Q(Name__icontains=query) | models.Q(Alt_name__icontains=query)
+    )[:10]  # Ограничиваем результаты до 10
+
+    # Подготавливаем данные для автозаполнения
+    results = []
+    for game in games:
+        results.append({
+            'label': game.Name,  # Текст подсказки
+            'value': game.Name,  # Значение, которое будет отображаться в поле поиска
+        })
+
+    return JsonResponse(results, safe=False)
+
+
+def game_place_search(request, club_id):
+    query = request.GET.get('query', '')
+
+    results = GamePlace.objects.filter(
+        models.Q(game__Name__icontains=query) |
+        models.Q(game__Alt_name__icontains=query) |
+        models.Q(place__icontains=query) |
+        models.Q(club__icontains=query)
+    ).values('game__Name', 'place', 'club')[:10]
+
+
+
+
+
+
+
+
+    results_list = []
+    for result in results:
+        print("Current Result:", result)  # Отладочный вывод
+
+        club = get_object_or_404(Club, id=result['club'])
+        print(club)
+
+        club_name = club.name
+        print(club_name)
+
+        result_dict = {
+            'game': result['game__Name'],
+            'place': result['place'],
+            'club': club_name,
+        }
+        results_list.append(result_dict)
+
+    return JsonResponse(results_list, safe=False)
+
+
 
 
 #добавление игр и назначение устройств
@@ -1114,26 +1171,32 @@ def edit_games(request, club_id):
         club_name = club.name
         place_model = club_models_places.get(str(club_name))
         places = place_model.objects.all().order_by('place')
-        print(places)
 
         # Сортируем игры по алфавиту
         games = Games_for_place.objects.all().order_by('Name')
 
-        # Проверка, если нажата кнопка "Добавить игру"
+        # Получаем связанные места для каждой игры
+        game_places = {}
+        for game in games:
+            game_places[game.id] = game.game_places.values_list('place', flat=True)  # Список мест для игры
+
+        # Обработчик для добавления новой игры
         if request.method == "POST" and 'add_game' in request.POST:
             new_game_name = request.POST.get('game_name', '').strip()
-            if new_game_name:  # Проверка, что название не пустое
-                Games_for_place.objects.create(Name=new_game_name)
-                return redirect('edit_games', club_id=club_id)  # Перенаправление на ту же страницу
+            alt_name = request.POST.get('alt_name', '').strip()  # Альтернативное название
+            if new_game_name:
+                # Создаем новую игру с альтернативным названием
+                Games_for_place.objects.create(Name=new_game_name, Alt_name=alt_name)
+                return redirect('edit_games', club_id=club_id)
 
         context = {
             'club_id': club_id,
             'club_name': club.name,
             'games': games,
-            'places': places,  # Добавляем список мест
+            'places': places,
+            'game_places': game_places,  # Передаем словарь с местами для каждой игры
         }
         return render(request, 'main/edit_games.html', context)
-
 
 # Обработчик для добавления привязки устройства к игре
 @require_POST
@@ -1176,3 +1239,38 @@ def update_assignments(request, club_id, game_id):
     return redirect('edit_games', club_id=club_id)
 
 
+# удаление привязки устройства к игре
+@require_POST
+def remove_place(request, club_id, game_id, place_name):
+    game = get_object_or_404(Games_for_place, id=game_id)
+
+    # Удаляем связь устройства с игрой для заданного клуба
+    GamePlace.objects.filter(game=game, club=club_id, place=place_name).delete()
+
+    # Перенаправление на страницу редактирования игр
+    return redirect('edit_games', club_id=club_id)
+
+
+# Обработчик для добавления и удаления привязки устройств к игре
+@require_POST
+def update_assignments(request, club_id, game_id):
+    selected_places = request.POST.getlist('places')  # Получаем список отмеченных устройств
+    game = get_object_or_404(Games_for_place, id=game_id)
+
+    # Получаем существующие записи для этой игры и клуба
+    existing_assignments = GamePlace.objects.filter(game=game, club=club_id)
+    existing_places = set(existing_assignments.values_list('place', flat=True))
+
+    # Найти устройства для добавления и удаления
+    places_to_add = set(selected_places) - existing_places
+    places_to_remove = existing_places - set(selected_places)
+
+    # Добавляем новые привязки
+    for place in places_to_add:
+        GamePlace.objects.create(game=game, place=place, club=club_id)
+
+    # Удаляем снятые привязки
+    GamePlace.objects.filter(game=game, club=club_id, place__in=places_to_remove).delete()
+
+    # Перенаправление на страницу редактирования игр
+    return redirect('edit_games', club_id=club_id)
