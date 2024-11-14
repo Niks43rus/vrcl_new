@@ -21,6 +21,8 @@ urlpatterns = [
     path('scheme_free/<str:club_id>/', scheme_free, name='scheme_free'),
 
 
+    path('news_block/<str:club_id>/', news_block, name='news_block'),
+
     path('place_device/<str:club_id>/', place_device, name='place_device'),
     path('place_device/game_search_autocomplete/<int:club_id>/', game_search_autocomplete, name='game_search_autocomplete'),
 
@@ -34,6 +36,8 @@ urlpatterns = [
     path('place_device/game_search_autocomplete/<int:club_id>/', game_search_autocomplete,
          name='game_search_autocomplete'),
     path('place_device/game_place_search/<int:club_id>/', game_place_search, name='game_place_search'),
+
+
 
 
 

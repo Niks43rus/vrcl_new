@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новости</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Шапка */
+        .header {
+            background-color: #25272a;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .back-button {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            margin-right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            text-decoration: underline;
+        }
+
+        /* Контейнер для новостей */
+        .news-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Блоки новостей */
+        .news-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f3f3f3, #e7e7e7);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .news-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .news-header {
+            font-size: 22px;
+            font-weight: bold;
+            color: #25272a;
+            cursor: pointer;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .news-header:hover {
+            text-decoration: underline;
+        }
+
+        .news-header::before {
+            content: '+';
+            margin-right: 10px;
+            font-size: 24px;
+            color: #25272a;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .news-header.open::before {
+            transform: rotate(45deg);
+        }
+
+        .news-description {
+            display: none;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .news-description pre {
+            font-family: inherit;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+        }
+
+        small {
+            display: block;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
+    <script>
+        function toggleDescription(id) {
+            const header = document.querySelector(`#header-${id}`);
+            const description = document.getElementById(`description-${id}`);
+            if (description.style.display === "none" || description.style.display === "") {
+                description.style.display = "block";
+                header.classList.add("open");
+            } else {
+                description.style.display = "none";
+                header.classList.remove("open");
+            }
+        }
+
+        function goBack() {
+            window.history.back(); // Кнопка "Назад"
+        }
+    </script>
+</head>
+<body>
+    <!-- Шапка -->
+    <div class="header">
+        <button class="back-button" onclick="goBack()">Назад</button>
+        <h1>Новостной блок</h1>
+    </div>
+
+    <!-- Контейнер с новостями -->
+    <div class="news-container">
+        {% for item in news %}
+        <div class="news-item">
+            <div class="news-header" id="header-{{ item.id }}" onclick="toggleDescription({{ item.id }})">
+                {{ item.title }}
+            </div>
+            <small>Источник: {{ item.source }} | {{ item.date|date:"d.m.Y H:i" }}</small>
+            <div class="news-description" id="description-{{ item.id }}">
+                <pre>{{ item.description }}</pre>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

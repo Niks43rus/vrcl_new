@@ -9,6 +9,8 @@ admin.site.register(WhereInfo)
 admin.site.register(Games_for_place)
 admin.site.register(GamePlace)
 
+admin.site.register(News)
+
 
 admin.site.register(Note_ms)
 admin.site.register(Device_ms)

@@ -1274,3 +1274,13 @@ def update_assignments(request, club_id, game_id):
 
     # Перенаправление на страницу редактирования игр
     return redirect('edit_games', club_id=club_id)
+
+
+
+#Блок нвоостей
+def news_block(request, club_id):
+    if is_authenticated(request):
+        news = News.objects.all().order_by('-date')  # Сортировка: сначала свежие
+        return render(request, 'main/news_list.html', {'news': news})
+
+

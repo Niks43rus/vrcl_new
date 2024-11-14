@@ -95,6 +95,22 @@ class GamePlace(models.Model):
         verbose_name_plural = "Привязки игр к местам"
 
 
+
+class News(models.Model):
+    title = models.CharField(max_length=500, verbose_name="Заголовок")
+    description = models.TextField(verbose_name="Описание")  # Используем TextField для длинных текстов
+    date = models.DateTimeField(verbose_name="Дата публикации")  # Поле для даты
+    source = models.CharField(max_length=250, verbose_name="Автор")  # Поле для источника новости
+
+    def __str__(self):
+        return f"{self.title} ({self.source}, {self.date.strftime('%Y-%m-%d')})"
+    class Meta:
+        verbose_name = "Новость"
+        verbose_name_plural = "Новости"
+
+
+
+
 #region Молодой гвардии
 class Device_mg(models.Model):
     name = models.CharField(max_length=50, verbose_name='Имя устройства')
